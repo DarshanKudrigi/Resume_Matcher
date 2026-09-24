@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #F7F5F0;
+  --bg-card: #FFFFFF;
+  --color-primary: #7C5C3B;
+  --color-secondary: #A67C52;
+  --color-accent: #D8A48F;
+  --color-text: #2F2A26;
+  --color-muted: #77716B;
+  --color-border: #E7E0D8;
+  --color-success: #6B8E6B;
+  --color-warning: #C99545;
+  --color-error: #B96A63;
+}
+
+.dark {
+  --bg-primary: #1F1D1A;
+  --bg-card: #292622;
+  --color-primary: #C49A6C;
+  --color-secondary: #D8B08A;
+  --color-text: #F4EFE8;
+  --color-muted: #B9B0A5;
+  --color-border: #413B34;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--color-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8CFC4;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4B453D;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B6ABA0;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #635C52;
+}
+
+/* Print styling for clean resume export */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .resume-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}
