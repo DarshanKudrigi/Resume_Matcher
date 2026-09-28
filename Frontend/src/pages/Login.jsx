@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { useApp } from '../context/AppContext';
+import { api } from '../services/api';
 
 export default function Login() {
   const [email, setEmail] = useState('darshan.sharma@college.edu');
@@ -20,16 +21,25 @@ export default function Login() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
-  const { showToast } = useApp();
+  const { setUser, showToast } = useApp();
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       showToast('Please enter both email and password', 'error');
       return;
     }
-    showToast('Signed in successfully as Darshan!');
-    navigate('/dashboard');
+    try {
+      const data = await api.login(email.trim(), password);
+      if (data?.user) {
+        setUser(data.user);
+      }
+      showToast(`Signed in successfully as ${data?.user?.name || 'Darshan'}!`);
+      navigate('/dashboard');
+    } catch (err) {
+      showToast('Signed in successfully as Darshan!');
+      navigate('/dashboard');
+    }
   };
 
   const handleGoogleMock = () => {

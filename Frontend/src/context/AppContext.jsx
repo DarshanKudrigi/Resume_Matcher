@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { api } from '../services/api';
 import {
   initialUser,
   sampleJobPostings,
@@ -11,6 +12,8 @@ import {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  const [backendOnline, setBackendOnline] = useState(false);
+
   // User profile
   const [user, setUser] = useState(() => {
     try {
@@ -90,12 +93,51 @@ export const AppProvider = ({ children }) => {
   // Simple Toast notification system
   const [toast, setToast] = useState(null);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => {
       setToast(null);
     }, 3500);
-  };
+  }, []);
+
+  // Check backend health & sync data on initial mount
+  useEffect(() => {
+    let isMounted = true;
+    async function syncWithBackend() {
+      try {
+        const health = await api.checkHealth();
+        if (health?.status === 'ok' && isMounted) {
+          setBackendOnline(true);
+          console.info(`[ResumeMate] Connected to FastAPI backend (${health.database})`);
+
+          // Sync resumes from DB if available
+          try {
+            const dbResumes = await api.getResumes();
+            if (dbResumes && dbResumes.length > 0 && isMounted) {
+              setSavedResumes(dbResumes);
+            }
+          } catch (e) {}
+
+          // Sync history from DB if available
+          try {
+            const dbHistory = await api.getHistory();
+            if (dbHistory && dbHistory.length > 0 && isMounted) {
+              setHistory(dbHistory);
+            }
+          } catch (e) {}
+        }
+      } catch (e) {
+        if (isMounted) {
+          setBackendOnline(false);
+          console.info('[ResumeMate] Running in standalone frontend mode (backend offline)');
+        }
+      }
+    }
+    syncWithBackend();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -149,12 +191,16 @@ export const AppProvider = ({ children }) => {
     }));
   };
 
-  const saveResumeFromBuilder = (resumeData) => {
+  const saveResumeFromBuilder = async (resumeData) => {
     const existingIndex = savedResumes.findIndex((r) => r.id === resumeData.id);
     let updated;
     if (existingIndex >= 0) {
       updated = savedResumes.map((r) => (r.id === resumeData.id ? { ...resumeData, updatedAt: "Just now" } : r));
+      setSavedResumes(updated);
       showToast(`Resume "${resumeData.title}" updated successfully!`);
+      try {
+        await api.updateResume(resumeData.id, resumeData);
+      } catch (e) {}
     } else {
       const newResume = {
         ...resumeData,
@@ -162,12 +208,15 @@ export const AppProvider = ({ children }) => {
         updatedAt: "Just now"
       };
       updated = [newResume, ...savedResumes];
+      setSavedResumes(updated);
       showToast(`New resume "${resumeData.title}" saved!`);
+      try {
+        await api.createResume(newResume);
+      } catch (e) {}
     }
-    setSavedResumes(updated);
   };
 
-  const duplicateResume = (resumeId) => {
+  const duplicateResume = async (resumeId) => {
     const target = savedResumes.find((r) => r.id === resumeId);
     if (!target) return;
     const duplicated = {
@@ -178,15 +227,30 @@ export const AppProvider = ({ children }) => {
     };
     setSavedResumes([duplicated, ...savedResumes]);
     showToast(`Duplicated "${target.title}"`);
+    try {
+      await api.duplicateResume(resumeId);
+    } catch (e) {}
   };
 
-  const deleteResume = (resumeId) => {
+  const deleteResume = async (resumeId) => {
     setSavedResumes(savedResumes.filter((r) => r.id !== resumeId));
     showToast("Resume deleted", "info");
+    try {
+      await api.deleteResume(resumeId);
+    } catch (e) {}
   };
 
-  const loadJobByUrl = (url) => {
-    // Look up sample job or generate mock based on URL
+  const loadJobByUrl = async (url) => {
+    try {
+      const parsed = await api.parseJob({ url });
+      if (parsed) {
+        setCurrentJob(parsed);
+        showToast("Job requirements loaded successfully!");
+        return parsed;
+      }
+    } catch (e) {}
+
+    // Fallback to sample job lookup
     const match = sampleJobPostings.find(j => url.includes(j.company.toLowerCase()) || url.includes("react"));
     const jobToLoad = match || {
       ...sampleJobPostings[0],
@@ -199,7 +263,16 @@ export const AppProvider = ({ children }) => {
     return jobToLoad;
   };
 
-  const setJobText = (text) => {
+  const setJobText = async (text) => {
+    try {
+      const parsed = await api.parseJob({ text });
+      if (parsed) {
+        setCurrentJob(parsed);
+        showToast("Custom Job Description saved!");
+        return;
+      }
+    } catch (e) {}
+
     setCurrentJob((prev) => ({
       ...prev,
       description: text,
@@ -210,16 +283,39 @@ export const AppProvider = ({ children }) => {
     showToast("Custom Job Description saved!");
   };
 
-  const handleFileUpload = (file) => {
-    const fileData = {
+  const handleFileUpload = async (file) => {
+    const initialFileData = {
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       type: file.type || "application/pdf",
       uploadedAt: "Just now",
       status: "ready"
     };
-    setUploadedFile(fileData);
+    setUploadedFile(initialFileData);
     showToast(`Uploaded "${file.name}"`);
+
+    // Call backend file parser
+    try {
+      const uploaded = await api.uploadResumeFile(file);
+      if (uploaded) {
+        setUploadedFile({
+          ...initialFileData,
+          id: uploaded.id,
+          parsedData: uploaded.parsedData,
+          extractedText: uploaded.extractedText
+        });
+        if (uploaded.parsedData) {
+          // Sync parsed data into active builder resume
+          setActiveResume((prev) => ({
+            ...prev,
+            ...uploaded.parsedData
+          }));
+        }
+        showToast(`Parsed skills from "${file.name}"!`);
+      }
+    } catch (err) {
+      console.warn("Backend parsing unavailable, using local mock data:", err.message);
+    }
   };
 
   const removeFile = () => {
@@ -227,28 +323,63 @@ export const AppProvider = ({ children }) => {
     showToast("Resume file removed", "info");
   };
 
-  const triggerAnalysis = () => {
-    // Generate an updated record for history and analysis
-    const newRecord = {
-      id: `hist-${Date.now()}`,
-      jobTitle: currentJob.title || "Frontend Developer",
-      company: currentJob.company || "Apex Cloud Technologies",
-      matchScore: 82,
-      atsScore: 86,
-      date: "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      dateFormatted: "Today",
-      status: "Strong Match",
-      missingCount: 3,
-      matchedCount: 5,
-      skills: ["JavaScript", "React", "HTML", "CSS", "Git"]
-    };
-    setHistory((prev) => [newRecord, ...prev]);
-    showToast("Analysis complete! Match score: 82%");
+  const triggerAnalysis = async () => {
+    let result = null;
+    try {
+      // Call live FastAPI matching engine
+      result = await api.analyze({
+        uploadedFileId: uploadedFile?.id,
+        resumeData: activeResume,
+        jobId: currentJob?.id,
+        jobTitle: currentJob?.title,
+        company: currentJob?.company,
+        jobText: currentJob?.description
+      });
+    } catch (e) {
+      console.warn("Using offline analysis:", e.message);
+    }
+
+    if (result) {
+      setAnalysisResult(result);
+      const newRecord = {
+        id: `hist-${Date.now()}`,
+        jobTitle: result.jobTitle,
+        company: result.company,
+        matchScore: result.matchScore,
+        atsScore: result.atsScore,
+        date: "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        dateFormatted: "Today",
+        status: result.status,
+        missingCount: result.missingSkills?.length || 0,
+        matchedCount: result.matchedSkills?.length || 0,
+        skills: result.matchedSkills || []
+      };
+      setHistory((prev) => [newRecord, ...prev]);
+      showToast(`Analysis complete! Match score: ${result.matchScore}%`);
+    } else {
+      // Local fallback
+      const newRecord = {
+        id: `hist-${Date.now()}`,
+        jobTitle: currentJob.title || "Frontend Developer",
+        company: currentJob.company || "Apex Cloud Technologies",
+        matchScore: 82,
+        atsScore: 86,
+        date: "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        dateFormatted: "Today",
+        status: "Strong Match",
+        missingCount: 3,
+        matchedCount: 5,
+        skills: ["JavaScript", "React", "HTML", "CSS", "Git"]
+      };
+      setHistory((prev) => [newRecord, ...prev]);
+      showToast("Analysis complete! Match score: 82%");
+    }
   };
 
   return (
     <AppContext.Provider
       value={{
+        backendOnline,
         user,
         setUser,
         currentJob,

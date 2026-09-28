@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, Bot, User, RotateCcw } from 'lucide-react';
 import { chatResponses } from '../data/mockData';
+import { useApp } from '../context/AppContext';
+import { api } from '../services/api';
 
 export default function ChatBox() {
+  const { currentJob, activeResume, analysisResult } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -33,7 +36,7 @@ export default function ChatBox() {
     }
   }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = (textToSend) => {
+  const handleSendMessage = async (textToSend) => {
     const query = textToSend || inputValue;
     if (!query.trim()) return;
 
@@ -47,6 +50,30 @@ export default function ChatBox() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsTyping(true);
+
+    try {
+      const resp = await api.sendChatMessage({
+        message: query,
+        currentJob,
+        currentResume: activeResume,
+        analysisResult
+      });
+      if (resp?.reply) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'assistant',
+            text: resp.reply,
+            time: resp.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        setIsTyping(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('API chat fallback:', err.message);
+    }
 
     // Look for preset response or generate intelligent mock response
     setTimeout(() => {
