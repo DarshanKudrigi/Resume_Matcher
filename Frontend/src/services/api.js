@@ -118,14 +118,6 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  // History
-  getHistory: () => request('/history'),
-  getHistoryItem: (id) => request(`/history/${id}`),
-  deleteHistoryItem: (id) =>
-    request(`/history/${id}`, {
-      method: 'DELETE',
-    }),
-
   // Dashboard
   getDashboardStats: () => request('/dashboard/stats'),
 

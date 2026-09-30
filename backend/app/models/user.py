@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, Integer, ForeignKey
+from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -25,20 +25,4 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
-    analysis_history = relationship("AnalysisHistory", back_populates="user", cascade="all, delete-orphan")
-
-
-class Notification(Base):
-    __tablename__ = "notifications"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    title = Column(String(200), nullable=False)
-    message = Column(String(500), nullable=False)
-    time = Column(String(50), default="Just now")
-    unread = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    user = relationship("User", back_populates="notifications")

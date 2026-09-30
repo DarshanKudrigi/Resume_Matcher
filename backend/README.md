@@ -23,10 +23,9 @@ backend/
 │   ├── config.py              # Environment settings & configuration
 │   ├── database.py            # Async engine, sessionmaker, and DB connection
 │   ├── models/                # SQLAlchemy ORM models
-│   │   ├── user.py            # Users & notifications
+│   │   ├── user.py            # Users & profile
 │   │   ├── resume.py          # Saved resumes & uploaded files
-│   │   ├── job.py             # Target job postings
-│   │   └── history.py         # Analysis audit history
+│   │   └── job.py             # Target job postings
 │   ├── schemas/               # Pydantic v2 request/response schemas
 │   │   ├── auth.py            # Login, register, profile
 │   │   ├── resume.py          # Builder & parsed resume structures
@@ -42,11 +41,10 @@ backend/
 │   │   └── ai_service.py      # Context-aware chat & Gemini LLM
 │   └── routers/               # FastAPI endpoints
 │       ├── auth.py            # /api/auth (register, login, me)
-│       ├── users.py           # /api/users (profile, notifications)
+│       ├── users.py           # /api/users (profile)
 │       ├── resumes.py         # /api/resumes (CRUD, duplicate, upload)
 │       ├── jobs.py            # /api/jobs (samples, parse URL/text)
 │       ├── analyze.py         # /api/analyze (full matching pipeline)
-│       ├── history.py         # /api/history (audit logs)
 │       ├── dashboard.py       # /api/dashboard/stats
 │       └── chat.py            # /api/chat & suggestions
 ├── main.py                    # Application entrypoint & lifespan
@@ -68,12 +66,12 @@ cd backend
 
 # If using uv (fastest):
 uv venv .venv
-.\.venv\Scripts\activate
+.venv\Scripts\activate
 uv pip install -r requirements.txt
 
 # Or using standard python:
 python -m venv .venv
-.\.venv\Scripts\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -127,7 +125,6 @@ The server starts at `http://127.0.0.1:8000`.
 | **Auth** | `POST` | `/api/auth/login` | Authenticate with email & password |
 | **Auth** | `GET` | `/api/auth/me` | Fetch authenticated user profile |
 | **Users** | `PUT` | `/api/users/profile` | Update profile details and social links |
-| **Users** | `GET` | `/api/users/notifications` | List notifications |
 | **Resumes** | `GET` | `/api/resumes` | List saved resumes |
 | **Resumes** | `POST` | `/api/resumes` | Create resume |
 | **Resumes** | `GET` | `/api/resumes/{id}` | Get single resume |
@@ -138,8 +135,6 @@ The server starts at `http://127.0.0.1:8000`.
 | **Jobs** | `GET` | `/api/jobs` | Get job postings |
 | **Jobs** | `POST` | `/api/jobs/parse` | Extract skills from URL or text |
 | **Analyze** | `POST` | `/api/analyze` | Match resume vs job, compute ATS & gaps |
-| **History** | `GET` | `/api/history` | Get past analysis audit history |
-| **History** | `GET` | `/api/history/{id}` | Get single analysis result details |
 | **Dashboard**| `GET` | `/api/dashboard/stats` | High-level metrics for dashboard |
 | **Chat** | `POST` | `/api/chat` | AI career coach assistant chat |
 | **Chat** | `GET` | `/api/chat/suggestions` | AI writing suggestions for builder |

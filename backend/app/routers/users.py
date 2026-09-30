@@ -1,11 +1,10 @@
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
-from app.models.user import User, Notification
-from app.schemas.auth import UserProfileUpdate, UserResponse, NotificationItem
+from app.models.user import User
+from app.schemas.auth import UserProfileUpdate, UserResponse
 from app.services.auth_service import get_current_user
 from app.routers.auth import format_user_response
 
@@ -50,38 +49,3 @@ async def update_profile(
     await db.commit()
     await db.refresh(current_user)
     return format_user_response(current_user)
-
-@router.get("/notifications", response_model=List[NotificationItem])
-async def get_notifications(
-    current_user: User = Depends(get_current_user)
-):
-    """Retrieves all notifications for current user."""
-    return [
-        NotificationItem(
-            id=n.id,
-            title=n.title,
-            message=n.message,
-            time=n.time,
-            unread=n.unread
-        )
-        for n in (current_user.notifications or [])
-    ]
-
-@router.put("/notifications/{notif_id}/read")
-async def mark_notification_read(
-    notif_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """Marks a single notification as read."""
-    result = await db.execute(
-        select(Notification).where(
-            Notification.id == notif_id,
-            Notification.user_id == current_user.id
-        )
-    )
-    notif = result.scalars().first()
-    if notif:
-        notif.unread = False
-        await db.commit()
-    return {"status": "ok"}

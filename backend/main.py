@@ -6,10 +6,9 @@ from sqlalchemy import select
 
 from app.config import settings
 from app.database import setup_database, Base, get_sessionmaker, ACTIVE_DB_TYPE
-from app.models.user import User, Notification
+from app.models.user import User
 from app.models.job import JobPosting
 from app.models.resume import Resume
-from app.models.history import AnalysisHistory
 from app.services.auth_service import hash_password
 from app.routers import (
     auth_router,
@@ -17,7 +16,6 @@ from app.routers import (
     resumes_router,
     jobs_router,
     analyze_router,
-    history_router,
     dashboard_router,
     chat_router
 )
@@ -55,32 +53,6 @@ async def seed_initial_data():
                     graduation_year="2026"
                 )
                 session.add(user)
-                await session.flush()
-
-                # Add sample notifications
-                session.add_all([
-                    Notification(
-                        user_id=user.id,
-                        title="Analysis Complete",
-                        message="Your resume match score for Apex Cloud is 82%.",
-                        time="10m ago",
-                        unread=True
-                    ),
-                    Notification(
-                        user_id=user.id,
-                        title="ATS Tip",
-                        message="Adding 'Docker' can increase your score by up to 8%.",
-                        time="2h ago",
-                        unread=True
-                    ),
-                    Notification(
-                        user_id=user.id,
-                        title="Resume Saved",
-                        message="Frontend Developer Resume was updated.",
-                        time="1d ago",
-                        unread=False
-                    )
-                ])
 
             # Seed default sample jobs
             job_check = await session.execute(select(JobPosting).limit(1))
@@ -229,7 +201,6 @@ app.include_router(users_router, prefix=settings.API_PREFIX)
 app.include_router(resumes_router, prefix=settings.API_PREFIX)
 app.include_router(jobs_router, prefix=settings.API_PREFIX)
 app.include_router(analyze_router, prefix=settings.API_PREFIX)
-app.include_router(history_router, prefix=settings.API_PREFIX)
 app.include_router(dashboard_router, prefix=settings.API_PREFIX)
 app.include_router(chat_router, prefix=settings.API_PREFIX)
 

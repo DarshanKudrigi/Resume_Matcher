@@ -64,27 +64,9 @@ class AnalysisResponse(BaseModel):
     learningRecommendations: List[LearningRecommendation]
     atsBreakdown: ATSBreakdown
 
-class HistoryItemResponse(BaseModel):
-    id: str
-    jobTitle: str
-    company: str
-    matchScore: int
-    atsScore: int
-    date: str
-    dateFormatted: str
-    status: str
-    missingCount: int
-    matchedCount: int
-    skills: List[str]
-    fullResult: Optional[Dict[str, Any]] = None
-
-    class Config:
-        from_attributes = True
-
 class DashboardStatsResponse(BaseModel):
     totalAnalyses: int
     averageMatchScore: int
     topMissingSkill: str
     latestMatchScore: int
-    recentAnalyses: List[HistoryItemResponse]
     totalSavedResumes: int

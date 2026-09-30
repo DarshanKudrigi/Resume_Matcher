@@ -117,14 +117,6 @@ export const AppProvider = ({ children }) => {
               setSavedResumes(dbResumes);
             }
           } catch (e) {}
-
-          // Sync history from DB if available
-          try {
-            const dbHistory = await api.getHistory();
-            if (dbHistory && dbHistory.length > 0 && isMounted) {
-              setHistory(dbHistory);
-            }
-          } catch (e) {}
         }
       } catch (e) {
         if (isMounted) {

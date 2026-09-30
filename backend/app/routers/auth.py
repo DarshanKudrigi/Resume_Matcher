@@ -4,23 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
-from app.models.user import User, Notification
-from app.schemas.auth import UserRegister, UserLogin, UserResponse, TokenResponse, NotificationItem
+from app.models.user import User
+from app.schemas.auth import UserRegister, UserLogin, UserResponse, TokenResponse
 from app.services.auth_service import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 def format_user_response(user: User) -> UserResponse:
-    notifications = [
-        NotificationItem(
-            id=n.id,
-            title=n.title,
-            message=n.message,
-            time=n.time,
-            unread=n.unread
-        )
-        for n in (user.notifications or [])
-    ]
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -34,8 +24,7 @@ def format_user_response(user: User) -> UserResponse:
         portfolio=user.portfolio or "",
         college=user.college or "",
         degree=user.degree or "",
-        graduationYear=user.graduation_year or "",
-        notifications=notifications
+        graduationYear=user.graduation_year or ""
     )
 
 @router.post("/register", response_model=TokenResponse)
@@ -64,17 +53,6 @@ async def register(req: UserRegister, db: AsyncSession = Depends(get_db)):
         graduation_year=req.graduationYear or ""
     )
     db.add(new_user)
-    await db.flush()
-
-    # Add welcome notification
-    welcome_notif = Notification(
-        user_id=new_user.id,
-        title="Welcome to ResumeMate! 🎉",
-        message="Upload your resume or build one with our interactive editor to start matching.",
-        time="Just now",
-        unread=True
-    )
-    db.add(welcome_notif)
     await db.commit()
     await db.refresh(new_user)
 

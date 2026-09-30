@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +7,6 @@ from sqlalchemy import select
 from app.database import get_db
 from app.models.resume import Resume, UploadedFile
 from app.models.job import JobPosting
-from app.models.history import AnalysisHistory
 from app.models.user import User
 from app.schemas.analysis import AnalysisRequest, AnalysisResponse
 from app.services.auth_service import get_optional_current_user
@@ -108,22 +106,5 @@ async def analyze_resume(
 
     # 3. Perform analysis
     analysis_result = analyze_resume_against_job(resume_data, job_data, resume_raw_text)
-
-    # 4. Save to history table in PostgreSQL
-    history_record = AnalysisHistory(
-        id=f"hist-{int(datetime.utcnow().timestamp())}",
-        user_id=current_user.id if current_user else None,
-        job_title=analysis_result.jobTitle,
-        company=analysis_result.company,
-        match_score=analysis_result.matchScore,
-        ats_score=analysis_result.atsScore,
-        status=analysis_result.status,
-        missing_count=len(analysis_result.missingSkills),
-        matched_count=len(analysis_result.matchedSkills),
-        skills=analysis_result.matchedSkills,
-        full_result=analysis_result.model_dump()
-    )
-    db.add(history_record)
-    await db.commit()
 
     return analysis_result

@@ -17,7 +17,7 @@ import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 
 export default function Dashboard() {
-  const { user, currentJob, uploadedFile, triggerAnalysis, showToast } = useApp();
+  const { user, uploadedFile, triggerAnalysis, showToast } = useApp();
   const navigate = useNavigate();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -42,43 +42,14 @@ export default function Dashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
         
         {/* Welcome Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#E7E0D8]/80 dark:border-[#413B34]/80">
+        <div className="pb-2 border-b border-[#E7E0D8]/80 dark:border-[#413B34]/80">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#7C5C3B]/10 dark:bg-[#C49A6C]/20 text-[#7C5C3B] dark:text-[#C49A6C] border border-[#7C5C3B]/20 dark:border-[#C49A6C]/30 inline-flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                AI-Powered Matching Engine
-              </span>
-              <span className="text-xs text-[#77716B] dark:text-[#B9B0A5]">
-                v1.0 (Frontend Demo)
-              </span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2F2A26] dark:text-[#F4EFE8]">
               Welcome back, {user.name.split(' ')[0]}
             </h1>
             <p className="text-xs sm:text-sm text-[#77716B] dark:text-[#B9B0A5] mt-1">
               Compare your resume with a job description and understand where you stand.
             </p>
-          </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2.5 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] shadow-warm-sm">
-              <span className="text-[10px] uppercase font-bold text-[#77716B] dark:text-[#B9B0A5] block">
-                Target Role
-              </span>
-              <span className="text-xs font-bold text-[#2F2A26] dark:text-[#F4EFE8] truncate max-w-[140px] block">
-                {currentJob?.title || "Frontend Engineer"}
-              </span>
-            </div>
-            <div className="px-4 py-2.5 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] shadow-warm-sm text-center">
-              <span className="text-[10px] uppercase font-bold text-[#77716B] dark:text-[#B9B0A5] block">
-                Avg Match
-              </span>
-              <span className="text-sm font-extrabold text-[#6B8E6B]">
-                82%
-              </span>
-            </div>
           </div>
         </div>
 

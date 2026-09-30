@@ -50,7 +50,7 @@ async def init_postgres():
     try:
         app_engine = create_async_engine(app_db_url, echo=False)
         async with app_engine.begin() as conn:
-            print("Creating all database tables (users, resumes, job_postings, analysis_history, etc.)...")
+            print("Creating all database tables (users, resumes, job_postings, etc.)...")
             await conn.run_sync(Base.metadata.create_all)
         print("All tables created successfully in PostgreSQL!")
         await app_engine.dispose()

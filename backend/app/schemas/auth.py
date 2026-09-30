@@ -16,13 +16,6 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class NotificationItem(BaseModel):
-    id: int
-    title: str
-    message: str
-    time: str
-    unread: bool = True
-
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -51,7 +44,6 @@ class UserResponse(BaseModel):
     college: Optional[str] = ""
     degree: Optional[str] = ""
     graduationYear: Optional[str] = ""
-    notifications: List[NotificationItem] = []
 
     class Config:
         from_attributes = True

@@ -6,14 +6,11 @@ import {
   Sparkles, 
   FileText, 
   FolderKanban, 
-  History as HistoryIcon, 
-  Bell, 
   User, 
   Settings, 
   LogOut, 
   Menu, 
-  X,
-  CheckCircle2
+  X
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useApp } from '../context/AppContext';
@@ -21,19 +18,14 @@ import { useApp } from '../context/AppContext';
 export default function Navbar() {
   const { user } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const notifRef = useRef(null);
   const profileRef = useRef(null);
 
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileMenuOpen(false);
       }
@@ -47,7 +39,6 @@ export default function Navbar() {
     { name: 'Analyzer', path: '/analyzer', icon: Sparkles },
     { name: 'Resume Builder', path: '/builder', icon: FileText },
     { name: 'My Resumes', path: '/my-resumes', icon: FolderKanban },
-    { name: 'History', path: '/history', icon: HistoryIcon },
   ];
 
   return (
@@ -95,59 +86,11 @@ export default function Navbar() {
             </nav>
           </div>
 
-          {/* Right: Theme Toggle, Notifications, User Menu */}
+          {/* Right: Theme Toggle, User Menu */}
           <div className="flex items-center gap-2.5">
             
             {/* Theme Toggle */}
             <ThemeToggle />
-
-            {/* Notifications Dropdown */}
-            <div className="relative" ref={notifRef}>
-              <button
-                type="button"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] text-[#77716B] dark:text-[#B9B0A5] hover:text-[#2F2A26] dark:hover:text-[#F4EFE8] hover:border-[#A67C52] dark:hover:border-[#C49A6C] transition-colors"
-                aria-label="Notifications"
-                title="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                {user.notifications && user.notifications.some(n => n.unread) && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#C99545]" />
-                )}
-              </button>
-
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] shadow-warm-lg p-3 z-50 animate-fade-in">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#E7E0D8] dark:border-[#413B34]">
-                    <span className="text-sm font-semibold text-[#2F2A26] dark:text-[#F4EFE8]">
-                      Notifications
-                    </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#F7F5F0] dark:bg-[#1F1D1A] text-[#77716B] dark:text-[#B9B0A5]">
-                      Mock Feed
-                    </span>
-                  </div>
-                  <div className="space-y-2 max-h-72 overflow-y-auto">
-                    {user.notifications?.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`p-2.5 rounded-lg text-xs transition-colors flex gap-2.5 items-start ${
-                          item.unread
-                            ? 'bg-[#F7F5F0] dark:bg-[#1F1D1A]/80 border-l-2 border-[#7C5C3B] dark:border-[#C49A6C]'
-                            : 'bg-transparent opacity-80'
-                        }`}
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-[#6B8E6B] shrink-0" />
-                        <div className="flex-1">
-                          <p className="font-medium text-[#2F2A26] dark:text-[#F4EFE8]">{item.title}</p>
-                          <p className="text-[#77716B] dark:text-[#B9B0A5] mt-0.5 leading-relaxed">{item.message}</p>
-                          <span className="text-[10px] text-[#A67C52] dark:text-[#D8B08A] mt-1 inline-block">{item.time}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Profile Avatar & Name */}
             <div className="relative" ref={profileRef}>
