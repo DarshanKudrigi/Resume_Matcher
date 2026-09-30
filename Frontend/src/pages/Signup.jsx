@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FileCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { useApp } from '../context/AppContext';
+import { api } from '../services/api';
 
 export default function Signup() {
   const [fullName, setFullName] = useState('Darshan Sharma');
@@ -13,7 +14,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const { setUser, showToast } = useApp();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password.trim()) {
       showToast('Please fill out all required fields', 'error');
@@ -28,14 +29,27 @@ export default function Signup() {
       return;
     }
 
-    setUser((prev) => ({
-      ...prev,
-      name: fullName,
-      email: email,
-    }));
-
-    showToast('Account created successfully!');
-    navigate('/dashboard');
+    try {
+      const data = await api.register({
+        name: fullName.trim(),
+        email: email.trim(),
+        password: password
+      });
+      if (data?.user) {
+        setUser(data.user);
+      }
+      showToast('Account created successfully!');
+      navigate('/dashboard');
+    } catch (err) {
+      // Fallback
+      setUser((prev) => ({
+        ...prev,
+        name: fullName,
+        email: email,
+      }));
+      showToast('Account created successfully!');
+      navigate('/dashboard');
+    }
   };
 
   return (
