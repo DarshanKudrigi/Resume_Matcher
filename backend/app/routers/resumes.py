@@ -59,7 +59,7 @@ async def create_resume(
 ):
     """Creates a new resume in the builder."""
     new_res = Resume(
-        id=f"res-{int(datetime.utcnow().timestamp())}",
+        id=f"res-{uuid.uuid4().hex[:8]}",
         user_id=current_user.id if current_user else None,
         title=req.title,
         template=req.template,
@@ -164,7 +164,7 @@ async def duplicate_resume(
         raise HTTPException(status_code=404, detail="Source resume not found")
 
     duplicated = Resume(
-        id=f"res-{int(datetime.utcnow().timestamp())}",
+        id=f"res-{uuid.uuid4().hex[:8]}",
         user_id=current_user.id if current_user else source.user_id,
         title=f"{source.title} (Copy)",
         template=source.template,
