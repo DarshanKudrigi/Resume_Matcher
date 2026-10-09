@@ -7,3 +7,4 @@ __pycache__/
 data/*.db
 data/*.sqlite3
 .pytest_cache/
+test_all_endpoints.py
