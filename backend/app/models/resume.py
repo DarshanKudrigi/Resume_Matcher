@@ -41,6 +41,7 @@ class UploadedFile(Base):
     content_type = Column(String(100), default="application/pdf")
     status = Column(String(50), default="ready")
     
+    file_path = Column(String(500), nullable=True)
     extracted_text = Column(Text, nullable=True)
     parsed_data = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -102,6 +102,8 @@ export const api = {
       body: formData,
     });
   },
+  getUploadedFile: (id) => request(`/resumes/files/${id}`),
+  getUploadedFiles: () => request('/resumes/files'),
 
   // Jobs
   getJobs: () => request('/jobs'),

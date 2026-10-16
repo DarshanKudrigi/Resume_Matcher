@@ -50,9 +50,23 @@ async def setup_database():
             engine = create_async_engine(sqlite_url, echo=False)
             AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
             ACTIVE_DB_TYPE = "SQLite (Development Fallback)"
+            await run_schema_migrations(engine)
             return engine
         else:
             raise e
+
+async def run_schema_migrations(target_engine):
+    """Safely adds missing columns to existing tables across PostgreSQL or SQLite."""
+    if not target_engine:
+        return
+    try:
+        async with target_engine.begin() as conn:
+            try:
+                await conn.execute(text("ALTER TABLE uploaded_files ADD COLUMN file_path VARCHAR(500)"))
+            except Exception:
+                pass  # Column already exists
+    except Exception as e:
+        logger.debug(f"Schema check: {e}")
 
 def get_sessionmaker():
     """Returns the active async_sessionmaker."""

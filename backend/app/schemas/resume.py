@@ -102,3 +102,6 @@ class UploadedFileResponse(BaseModel):
     status: str
     extractedText: Optional[str] = None
     parsedData: Optional[Dict[str, Any]] = None
+    filePath: Optional[str] = None
+    errorMessage: Optional[str] = None
+    pageCount: Optional[int] = 1

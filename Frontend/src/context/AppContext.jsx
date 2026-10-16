@@ -90,6 +90,10 @@ export const AppProvider = ({ children }) => {
     }
   });
 
+  // Upload loading and error states
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
   // Simple Toast notification system
   const [toast, setToast] = useState(null);
 
@@ -276,15 +280,18 @@ export const AppProvider = ({ children }) => {
   };
 
   const handleFileUpload = async (file) => {
+    setUploadLoading(true);
+    setUploadError(null);
+
     const initialFileData = {
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       type: file.type || "application/pdf",
       uploadedAt: "Just now",
-      status: "ready"
+      status: "uploading"
     };
     setUploadedFile(initialFileData);
-    showToast(`Uploaded "${file.name}"`);
+    showToast(`Uploading "${file.name}"...`, "info");
 
     // Call backend file parser
     try {
@@ -293,25 +300,50 @@ export const AppProvider = ({ children }) => {
         setUploadedFile({
           ...initialFileData,
           id: uploaded.id,
+          status: uploaded.status || "ready",
           parsedData: uploaded.parsedData,
-          extractedText: uploaded.extractedText
+          extractedText: uploaded.extractedText,
+          filePath: uploaded.filePath,
+          pageCount: uploaded.pageCount || 1
         });
+
         if (uploaded.parsedData) {
           // Sync parsed data into active builder resume
           setActiveResume((prev) => ({
             ...prev,
-            ...uploaded.parsedData
+            ...uploaded.parsedData,
+            title: uploaded.parsedData.title || prev.title,
+            personalInfo: { ...prev.personalInfo, ...(uploaded.parsedData.personalInfo || {}) },
+            summary: uploaded.parsedData.summary || prev.summary,
+            skills: uploaded.parsedData.skills || prev.skills,
+            education: (uploaded.parsedData.education && uploaded.parsedData.education.length > 0)
+              ? uploaded.parsedData.education
+              : prev.education,
+            experience: (uploaded.parsedData.experience && uploaded.parsedData.experience.length > 0)
+              ? uploaded.parsedData.experience
+              : prev.experience,
+            projects: (uploaded.parsedData.projects && uploaded.parsedData.projects.length > 0)
+              ? uploaded.parsedData.projects
+              : prev.projects,
           }));
         }
-        showToast(`Parsed skills from "${file.name}"!`);
+
+        const skillCount = uploaded.parsedData?.extracted_skills?.length || 0;
+        showToast(`Parsed ${skillCount} skills from "${file.name}"!`, "success");
       }
     } catch (err) {
-      console.warn("Backend parsing unavailable, using local mock data:", err.message);
+      console.warn("Backend parsing failed:", err.message);
+      setUploadError(err.detail || err.message || "Failed to process resume file.");
+      setUploadedFile((prev) => prev ? { ...prev, status: "error" } : null);
+      showToast(err.detail || err.message || "Upload failed", "error");
+    } finally {
+      setUploadLoading(false);
     }
   };
 
   const removeFile = () => {
     setUploadedFile(null);
+    setUploadError(null);
     showToast("Resume file removed", "info");
   };
 
@@ -392,6 +424,8 @@ export const AppProvider = ({ children }) => {
         activeResume,
         setActiveResume,
         updateActiveResume,
+        uploadLoading,
+        uploadError,
         toast,
         showToast
       }}

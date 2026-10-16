@@ -1,10 +1,15 @@
+import os
+import re
 import uuid
+from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
+from pypdf.errors import PdfReadError
 
+from app.config import settings, BASE_DIR
 from app.database import get_db
 from app.models.resume import Resume, UploadedFile
 from app.models.user import User
@@ -17,6 +22,10 @@ from app.services.parser_service import (
 )
 
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
+
+UPLOAD_DIR = Path(BASE_DIR) / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB limit
 
 def format_resume_response(res: Resume) -> ResumeResponse:
     return ResumeResponse(
@@ -191,44 +200,139 @@ async def upload_resume_file(
     current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Uploads a PDF/DOCX resume file and parses its contents."""
-    filename = file.filename or "resume.pdf"
-    content = await file.read()
-    size_mb = f"{len(content) / (1024 * 1024):.1f} MB"
-    content_type = file.content_type or "application/pdf"
+    """
+    Uploads a resume PDF or document with validation, safe local file storage,
+    multi-page text extraction, OCR fallback where necessary, section parsing,
+    and database persistence.
+    """
+    raw_filename = file.filename or "resume.pdf"
+    
+    # 1. Sanitize filename to prevent path traversal
+    base_name = os.path.basename(raw_filename)
+    clean_filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', base_name)
+    if not clean_filename or clean_filename.startswith('.'):
+        clean_filename = f"resume_{uuid.uuid4().hex[:6]}.pdf"
 
-    # Extract text based on file format
+    # 2. Read and validate file content
+    try:
+        content = await file.read()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to read uploaded file: {str(e)}"
+        )
+
+    # Validate size: reject empty or oversized
+    file_size_bytes = len(content)
+    if file_size_bytes == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty (0 bytes). Please upload a valid resume."
+        )
+
+    if file_size_bytes > MAX_FILE_SIZE_BYTES:
+        max_mb = MAX_FILE_SIZE_BYTES / (1024 * 1024)
+        actual_mb = file_size_bytes / (1024 * 1024)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File exceeds maximum allowed size ({max_mb:.0f} MB). Uploaded size: {actual_mb:.1f} MB."
+        )
+
+    # 3. Validate file type and contents
+    lower_name = clean_filename.lower()
+    content_type = file.content_type or "application/octet-stream"
+
+    is_pdf = lower_name.endswith(".pdf") or "pdf" in content_type
+    is_docx = lower_name.endswith((".docx", ".doc")) or "word" in content_type
+    is_txt = lower_name.endswith(".txt") or "text/plain" in content_type
+
+    if not is_pdf and not is_docx and not is_txt:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported file format. Please upload a PDF (.pdf), Word (.docx), or plain text (.txt) document."
+        )
+
+    # Validate PDF Magic Bytes (%PDF-)
+    if is_pdf:
+        if not content.startswith(b"%PDF-"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid PDF format: File header does not match a valid PDF structure (%PDF-)."
+            )
+
+    size_mb_str = f"{file_size_bytes / (1024 * 1024):.1f} MB"
+    file_id = f"file-{uuid.uuid4().hex[:10]}"
+    storage_filename = f"{file_id}_{clean_filename}"
+    storage_path = UPLOAD_DIR / storage_filename
+
+    # 4. Save file to controlled local storage
+    try:
+        with open(storage_path, "wb") as f:
+            f.write(content)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save file to server storage: {str(e)}"
+        )
+
+    # 5. Extract text and handle errors / OCR
     extracted_text = ""
-    if filename.lower().endswith(".pdf") or "pdf" in content_type:
+    page_count = 1
+    ocr_applied = False
+    status_msg = "ready"
+    err_msg = None
+
+    if is_pdf:
         try:
-            extracted_text = extract_text_from_pdf(content)
+            extracted_text, page_count, ocr_applied, status_msg = extract_text_from_pdf(content)
+        except ValueError as ve:
+            # E.g., password-protected or encrypted PDF
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(ve)
+            )
+        except PdfReadError as pre:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Corrupted or unreadable PDF: {str(pre)}"
+            )
         except Exception as e:
-            extracted_text = f"Error reading PDF: {e}"
-    elif filename.lower().endswith((".docx", ".doc")):
+            err_msg = f"Error extracting PDF: {str(e)}"
+            status_msg = "error"
+    elif is_docx:
         try:
             extracted_text = extract_text_from_docx(content)
+            status_msg = "DOCX extraction successful."
         except Exception as e:
-            extracted_text = f"Error reading DOCX: {e}"
-    else:
-        try:
-            extracted_text = content.decode("utf-8", errors="ignore")
-        except Exception:
-            extracted_text = ""
+            err_msg = f"Error extracting DOCX: {str(e)}"
+            status_msg = "error"
+    elif is_txt:
+        extracted_text = content.decode("utf-8", errors="ignore")
+        status_msg = "Text extraction successful."
 
-    parsed_data = parse_resume_content(extracted_text, filename)
+    # 6. Parse structured resume sections & NLP
+    parsed_data = parse_resume_content(extracted_text, clean_filename)
+    parsed_data["file_path"] = f"uploads/{storage_filename}"
+    parsed_data["ocr_applied"] = ocr_applied
+    parsed_data["page_count"] = page_count
 
+    # 7. Persist in database
+    file_record_status = "ready" if extracted_text.strip() else ("needs_ocr" if is_pdf else "empty")
     record = UploadedFile(
-        id=f"file-{uuid.uuid4().hex[:8]}",
+        id=file_id,
         user_id=current_user.id if current_user else None,
-        filename=filename,
-        file_size=size_mb,
+        filename=clean_filename,
+        file_size=size_mb_str,
         content_type=content_type,
-        status="ready",
+        status=file_record_status,
+        file_path=f"uploads/{storage_filename}",
         extracted_text=extracted_text,
-        parsed_data=parsed_data
+        parsed_data=parsed_data,
+        created_at=datetime.utcnow()
     )
     db.add(record)
     await db.commit()
+    await db.refresh(record)
 
     return UploadedFileResponse(
         id=record.id,
@@ -236,7 +340,62 @@ async def upload_resume_file(
         size=record.file_size,
         type=record.content_type,
         uploadedAt="Just now",
-        status="ready",
+        status=record.status,
         extractedText=extracted_text,
-        parsedData=parsed_data
+        parsedData=parsed_data,
+        filePath=record.file_path,
+        errorMessage=err_msg,
+        pageCount=page_count
     )
+
+@router.get("/files/{file_id}", response_model=UploadedFileResponse)
+async def get_uploaded_file(
+    file_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Retrieves an uploaded resume file and its parsed sections by ID."""
+    result = await db.execute(select(UploadedFile).where(UploadedFile.id == file_id))
+    record = result.scalars().first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Uploaded file not found")
+    
+    return UploadedFileResponse(
+        id=record.id,
+        name=record.filename,
+        size=record.file_size,
+        type=record.content_type,
+        uploadedAt=record.created_at.strftime("%Y-%m-%d %H:%M:%S") if record.created_at else "Earlier",
+        status=record.status,
+        extractedText=record.extracted_text,
+        parsedData=record.parsed_data,
+        filePath=record.file_path,
+        pageCount=(record.parsed_data or {}).get("page_count", 1)
+    )
+
+@router.get("/files", response_model=List[UploadedFileResponse])
+async def list_uploaded_files(
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Lists recently uploaded resume files."""
+    query = select(UploadedFile).order_by(desc(UploadedFile.created_at)).limit(20)
+    if current_user:
+        query = query.where((UploadedFile.user_id == current_user.id) | (UploadedFile.user_id == None))
+    
+    result = await db.execute(query)
+    records = result.scalars().all()
+    return [
+        UploadedFileResponse(
+            id=r.id,
+            name=r.filename,
+            size=r.file_size,
+            type=r.content_type,
+            uploadedAt=r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else "Earlier",
+            status=r.status,
+            extractedText=r.extracted_text,
+            parsedData=r.parsed_data,
+            filePath=r.file_path,
+            pageCount=(r.parsed_data or {}).get("page_count", 1)
+        )
+        for r in records
+    ]
