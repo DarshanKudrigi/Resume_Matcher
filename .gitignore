@@ -1,3 +1,4 @@
+//Resume Matcher Gitignore
 
 .env
 !env.example
@@ -27,3 +28,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
