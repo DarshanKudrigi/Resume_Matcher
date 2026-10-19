@@ -16,8 +16,7 @@ An intuitive, client-side application that matches resumes against job descripti
 - 📋 **ATS Checker:** Analyzes section headers, contact info integrity, layout parsability, and keyword density.
 - 📚 **Learning resources:** Recommended study paths and curated free learning resources for missing skills.
 - 🤖 **AI Assistant:** Built-in interactive chatbot to answer questions about your score, gaps, and resume improvements.
-- 📝 **Live Resume Builder:** Interactive dual-pane editor with live preview, 3 ATS-friendly templates (*Modern*, *Classic*, *Minimal*), AI writing suggestions, and one-click **PDF Export**.
-
+- 📝 **Live Resume Builder:** Interactive dual-pane editor with live preview, 3 ATS-friendly templates (_Modern_, _Classic_, _Minimal_), AI writing suggestions, and one-click **PDF Export**.
 
 ---
 
@@ -33,6 +32,7 @@ An intuitive, client-side application that matches resumes against job descripti
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
+
 Make sure you have **Node.js** (v18+) and **npm** installed.
 
 ### 2. Installation & Running
@@ -72,15 +72,15 @@ src/
 
 ## 📜 Available Scripts
 
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Runs the development server at `localhost:5173` |
-| `npm run build` | Builds the project for production |
-| `npm run preview` | Previews the production build locally |
-| `npm run lint` | Lints the codebase using Oxlint |
+| Command           | Description                                     |
+| :---------------- | :---------------------------------------------- |
+| `npm run dev`     | Runs the development server at `localhost:5173` |
+| `npm run build`   | Builds the project for production               |
+| `npm run preview` | Previews the production build locally           |
+| `npm run lint`    | Lints the codebase using Oxlint                 |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE). 
+This project is licensed under the [MIT License](LICENSE).
