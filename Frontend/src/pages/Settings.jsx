@@ -12,7 +12,6 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ThemeToggle from '../components/ThemeToggle';
-import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -261,7 +260,6 @@ export default function Settings() {
       </main>
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }

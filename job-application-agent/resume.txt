@@ -1,0 +1,37 @@
+
+Professional Summary
+Information Science undergraduate (CGPA: 8.5/10) with strong foundations in Data Structures & Algorithms, Object-Oriented Programming, and backend engineering. Experienced in developing AI-powered full-stack applications using React.js, FastAPI, Node.js, Express.js, and MongoDB while integrating modern AI services. Passionate about building scalable software systems and solving real-world engineering problems.
+
+Technical Skills
+• Programming Languages: C, C++, Java, Python, JavaScript, SQL
+• Backend: Node.js, Express.js, FastAPI, REST APIs,Django REST Framework, Spring
+• Frontend: React.js, Next.js, HTML5, CSS3, Tailwind CSS
+• Databases: MongoDB, MySQL,PostgreSQL,DynamoDB,SQL Server
+• Developer Tools: Git, GitHub, Postman, VS Code, Vercel, Render, Docker, Apache Airflow, Tableau, PowerBI, Jupyter Notebook,Apache Airflow,Apache Doris, Apache Iceberg,Apache Flink,Apache Spark,Apache Kafka
+• Core Computer Science: Data Structures & Algorithms, Object-Oriented Programming
+• Cloud Platforms: AWS, Azure, GCP
+• Machine Learning: Scikit-learn, Pandas, Numpy,TensorFlow, Keras
+
+Projects
+KrishiMitra – AI-Powered Farm Management Platform | React.js, FastAPI, Node.js, Express.js, MongoDB
+• Designed and developed a full-stack AI-powered farm management platform providing crop recommendations, disease detection, and intelligent farmer assistance.
+• Integrated Google Gemini AI and ElevenLabs APIs to build a multilingual voice-enabled chatbot for real-time farmer support.
+• Developed FastAPI microservices for crop recommendation and image-based plant disease detection using a modular backend architecture.
+• GitHub Repository | Live Demo
+
+College Complaint Management System | React.js, Node.js, Express.js, MySQL, JWT
+• Developed a full-stack complaint management platform to streamline complaint registration, tracking, and resolution.
+• Implemented JWT authentication and Role-Based Access Control (RBAC) for secure access across multiple user roles.
+• Designed a normalized MySQL database and built modular RESTful APIs using Express.js.
+• GitHub Repository
+
+Leadership / Positions of Responsibility
+Core Tech Team Member, Hortix Club, The National Institute of Engineering
+• Organized technical workshops, hackathons, and campus events while coordinating technical execution with cross-functional student teams.
+Innovation Core Member, Hortix Club, The National Institute of Engineering
+• Contributed to planning and coordinating innovation-driven technical events promoting collaborative problem solving.
+
+Achievements
+• HyperAPI Hackathon – Top 6 Finalist for developing an innovative software solution.
+• Parivartan Hackathon – Top 8 Finalist for building a technology-driven solution to a real-world problem.
+

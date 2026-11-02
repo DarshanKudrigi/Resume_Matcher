@@ -12,7 +12,6 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ResumePreview from '../components/ResumePreview';
-import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 import { defaultResumeData } from '../data/mockData';
 
@@ -207,7 +206,6 @@ export default function MyResumes() {
       )}
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }

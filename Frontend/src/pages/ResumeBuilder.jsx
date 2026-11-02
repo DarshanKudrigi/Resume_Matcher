@@ -10,7 +10,6 @@ import Footer from '../components/Footer';
 import ResumeForm from '../components/ResumeForm';
 import ResumePreview from '../components/ResumePreview';
 import ATSChecker from '../components/ATSChecker';
-import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 import { defaultResumeData } from '../data/mockData';
 
@@ -166,7 +165,6 @@ export default function ResumeBuilder() {
       </main>
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }

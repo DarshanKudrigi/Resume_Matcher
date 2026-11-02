@@ -13,7 +13,6 @@ import SkillCard from '../components/SkillCard';
 import SkillGap from '../components/SkillGap';
 import LearningRecommendations from '../components/LearningRecommendations';
 import ATSChecker from '../components/ATSChecker';
-import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 
 export default function AnalysisResults() {
@@ -175,7 +174,6 @@ export default function AnalysisResults() {
       </main>
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }

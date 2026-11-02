@@ -13,7 +13,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import JobDescriptionCard from '../components/JobDescriptionCard';
 import ResumeUpload from '../components/ResumeUpload';
-import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 
 export default function Dashboard() {
@@ -156,7 +155,6 @@ export default function Dashboard() {
       </main>
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }

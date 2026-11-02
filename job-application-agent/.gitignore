@@ -1,0 +1,11 @@
+venv/
+.env
+credentials.json
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+resumes/
+
+final_resume.pdf
+txt_resumes/
+.env

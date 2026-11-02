@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import ChatBox from '../components/ChatBox';
 import JobDescriptionCard from '../components/JobDescriptionCard';
 import ResumeUpload from '../components/ResumeUpload';
 import { useApp } from '../context/AppContext';
@@ -184,7 +183,6 @@ export default function Analyzer() {
       </main>
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }

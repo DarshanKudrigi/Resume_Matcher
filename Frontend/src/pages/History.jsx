@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import ChatBox from '../components/ChatBox';
 import { useApp } from '../context/AppContext';
 
 export default function History() {
@@ -164,7 +163,6 @@ export default function History() {
       </main>
 
       <Footer />
-      <ChatBox />
     </div>
   );
 }
