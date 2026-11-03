@@ -1,4 +1,5 @@
 import re
+import urllib.parse
 from typing import Dict, List, Optional
 from app.schemas.analysis import LearningRecommendation, LearningResource
 
@@ -1012,16 +1013,16 @@ def get_recommendations_for_skills(missing_skills: List[str], max_count: int = 6
                         LearningResource(
                             title=f"{clean_skill} Official Developer Documentation",
                             type="Official Documentation",
-                            provider=f"{clean_skill} Official Portal",
+                            provider=f"{clean_skill} Documentation Portal",
                             duration="Official Reference",
-                            link=f"https://devdocs.io/{doc_slug}"
+                            link=f"https://devdocs.io/#q={urllib.parse.quote(clean_skill)}"
                         ),
                         LearningResource(
-                            title=f"{clean_skill} Developer Guide & API Reference",
+                            title=f"{clean_skill} Developer Guide & Web Reference",
                             type="Official Reference",
                             provider="Developer Documentation",
                             duration="Getting Started",
-                            link=f"https://www.google.com/search?q={clean_skill}+official+documentation"
+                            link=f"https://developer.mozilla.org/en-US/search?q={urllib.parse.quote(clean_skill)}"
                         )
                     ]
                 )

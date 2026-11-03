@@ -4,6 +4,7 @@ import csv
 import json
 import logging
 import asyncio
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, AsyncGenerator
@@ -205,8 +206,14 @@ class JobRecommendationService:
                     if r_dict.get("resources") and len(r_dict["resources"]) > 0:
                         first_link = r_dict["resources"][0].get("link", "")
                         source_name = r_dict["resources"][0].get("title", "")
+                    
+                    skill_name = r_dict.get("skill", "")
+                    if not first_link or first_link == "#" or not first_link.startswith("http"):
+                        first_link = f"https://devdocs.io/#q={urllib.parse.quote(skill_name)}" if skill_name else "https://devdocs.io"
+                        source_name = f"{skill_name} Official Documentation"
+
                     formatted_recs.append({
-                        "skill": r_dict.get("skill", ""),
+                        "skill": skill_name,
                         "subtitle": r_dict.get("subtitle", ""),
                         "docUrl": first_link,
                         "sourceName": source_name,
@@ -485,8 +492,14 @@ class JobRecommendationService:
                         if r_dict.get("resources") and len(r_dict["resources"]) > 0:
                             first_link = r_dict["resources"][0].get("link", "")
                             source_name = r_dict["resources"][0].get("title", "")
+                        
+                        skill_name = r_dict.get("skill", "")
+                        if not first_link or first_link == "#" or not first_link.startswith("http"):
+                            first_link = f"https://devdocs.io/#q={urllib.parse.quote(skill_name)}" if skill_name else "https://devdocs.io"
+                            source_name = f"{skill_name} Official Documentation"
+
                         formatted_recs.append({
-                            "skill": r_dict.get("skill", ""),
+                            "skill": skill_name,
                             "subtitle": r_dict.get("subtitle", ""),
                             "docUrl": first_link,
                             "sourceName": source_name,

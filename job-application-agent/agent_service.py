@@ -18,6 +18,63 @@ from tracker.models import Job
 from scraper.linkedin_scraper import LinkedInScraper
 from scraper.naukri_scraper import NaukriScraper
 from matcher.resume_matcher import score_job, filter_jobs
+import urllib.parse
+
+OFFICIAL_DOCS_CATALOG: Dict[str, Tuple[str, str]] = {
+    "python": ("Python Official Documentation", "https://docs.python.org/3/"),
+    "fastapi": ("FastAPI Official Documentation", "https://fastapi.tiangolo.com/tutorial/"),
+    "django": ("Django Official Documentation", "https://docs.djangoproject.com/en/stable/"),
+    "flask": ("Flask Official Documentation", "https://flask.palletsprojects.com/"),
+    "react": ("React Official Documentation", "https://react.dev/learn"),
+    "next.js": ("Next.js Official Documentation", "https://nextjs.org/docs"),
+    "vue": ("Vue.js Official Documentation", "https://vuejs.org/guide/introduction.html"),
+    "angular": ("Angular Official Documentation", "https://angular.dev"),
+    "typescript": ("TypeScript Official Handbook", "https://www.typescriptlang.org/docs/handbook/intro.html"),
+    "javascript": ("MDN JavaScript Official Guide", "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide"),
+    "node.js": ("Node.js Official Documentation", "https://nodejs.org/docs/latest/api/"),
+    "node": ("Node.js Official Documentation", "https://nodejs.org/docs/latest/api/"),
+    "express": ("Express.js Official Documentation", "https://expressjs.com/en/starter/installing.html"),
+    "docker": ("Docker Official Documentation", "https://docs.docker.com/get-started/"),
+    "kubernetes": ("Kubernetes Official Documentation", "https://kubernetes.io/docs/tutorials/kubernetes-basics/"),
+    "postgresql": ("PostgreSQL Official Documentation", "https://www.postgresql.org/docs/current/"),
+    "mysql": ("MySQL Official Reference Manual", "https://dev.mysql.com/doc/refman/8.0/en/"),
+    "mongodb": ("MongoDB Official Manual", "https://www.mongodb.com/docs/manual/"),
+    "redis": ("Redis Official Documentation", "https://redis.io/docs/latest/get-started/"),
+    "aws": ("AWS Official Documentation", "https://docs.aws.amazon.com/"),
+    "azure": ("Microsoft Azure Documentation", "https://learn.microsoft.com/en-us/azure/"),
+    "gcp": ("Google Cloud Official Documentation", "https://cloud.google.com/docs"),
+    "git": ("Pro Git Official Book", "https://git-scm.com/doc"),
+    "graphql": ("GraphQL Official Documentation", "https://graphql.org/learn/"),
+    "rest apis": ("OpenAPI / REST API Guide", "https://swagger.io/docs/specification/about/"),
+    "rest api": ("OpenAPI / REST API Guide", "https://swagger.io/docs/specification/about/"),
+    "tailwind css": ("Tailwind CSS Documentation", "https://tailwindcss.com/docs/installation"),
+    "tailwind": ("Tailwind CSS Documentation", "https://tailwindcss.com/docs/installation"),
+    "linux": ("Linux Documentation", "https://www.kernel.org/doc/html/latest/"),
+    "ci/cd": ("GitHub Actions Documentation", "https://docs.github.com/en/actions"),
+    "pytorch": ("PyTorch Official Tutorials", "https://pytorch.org/tutorials/"),
+    "tensorflow": ("TensorFlow Official Documentation", "https://www.tensorflow.org/tutorials"),
+    "pandas": ("Pandas Official Documentation", "https://pandas.pydata.org/docs/"),
+    "numpy": ("NumPy Official Documentation", "https://numpy.org/doc/stable/user/quickstart.html"),
+    "system design": ("System Design Primer", "https://github.com/donnemartin/system-design-primer")
+}
+
+def _get_learning_recommendations(missing_skills: List[str]) -> List[Dict[str, str]]:
+    recs = []
+    for skill in missing_skills[:4]:
+        s_clean = str(skill).strip()
+        s_lower = s_clean.lower()
+        if s_lower in OFFICIAL_DOCS_CATALOG:
+            title, url = OFFICIAL_DOCS_CATALOG[s_lower]
+        else:
+            title = f"{s_clean} Official Documentation"
+            url = f"https://devdocs.io/#q={urllib.parse.quote(s_clean)}"
+        recs.append({
+            "skill": s_clean,
+            "docUrl": url,
+            "sourceName": title,
+            "topic": f"Developer Documentation for {s_clean}"
+        })
+    return recs
 
 logger = logging.getLogger("job_application_agent.service")
 
@@ -94,6 +151,7 @@ def _format_job_dict(job: Job) -> Dict[str, Any]:
         "missingSkills": missing_skills,
         "matchedPreferredSkills": matched_skills[3:] if len(matched_skills) > 3 else [],
         "missingPreferredSkills": missing_skills[3:] if len(missing_skills) > 3 else [],
+        "learningRecommendations": _get_learning_recommendations(missing_skills),
     }
 
 async def stream_agent_job_discovery(

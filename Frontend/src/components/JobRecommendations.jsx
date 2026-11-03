@@ -28,6 +28,16 @@ const QUICK_ROLES = [
   "Data Analyst"
 ];
 
+const resolveDocUrl = (rec) => {
+  if (!rec) return "https://devdocs.io";
+  const url = rec.docUrl || rec.url || rec.link;
+  if (url && typeof url === 'string' && url !== '#' && (url.startsWith('http://') || url.startsWith('https://'))) {
+    return url;
+  }
+  const query = encodeURIComponent(rec.skill || 'documentation');
+  return `https://devdocs.io/#q=${query}`;
+};
+
 const QUICK_LOCATIONS = [
   "Bengaluru",
   "Remote",
@@ -506,30 +516,33 @@ export default function JobRecommendations() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {job.learningRecommendations.map((rec, i) => (
-                            <a
-                              key={i}
-                              href={rec.docUrl || rec.url || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2.5 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/50 dark:bg-[#1F1D1A]/50 hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-colors flex items-center justify-between group"
-                            >
-                              <div className="space-y-0.5">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-xs font-bold text-[#2F2A26] dark:text-[#F4EFE8]">
-                                    {rec.skill}
-                                  </span>
-                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#7C5C3B]/10 text-[#7C5C3B] dark:text-[#C49A6C] font-semibold">
-                                    Official
-                                  </span>
+                          {job.learningRecommendations.map((rec, i) => {
+                            const safeDocUrl = resolveDocUrl(rec);
+                            return (
+                              <a
+                                key={i}
+                                href={safeDocUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2.5 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/50 dark:bg-[#1F1D1A]/50 hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-colors flex items-center justify-between group"
+                              >
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-bold text-[#2F2A26] dark:text-[#F4EFE8]">
+                                      {rec.skill}
+                                    </span>
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#7C5C3B]/10 text-[#7C5C3B] dark:text-[#C49A6C] font-semibold">
+                                      Official
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#77716B] dark:text-[#B9B0A5] line-clamp-1">
+                                    {rec.topic || rec.sourceName || "Official Documentation & API Guide"}
+                                  </p>
                                 </div>
-                                <p className="text-[10px] text-[#77716B] dark:text-[#B9B0A5] line-clamp-1">
-                                  {rec.topic || rec.sourceName || "Official Documentation & API Guide"}
-                                </p>
-                              </div>
-                              <ExternalLink className="w-3.5 h-3.5 text-[#77716B] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] shrink-0 ml-2" />
-                            </a>
-                          ))}
+                                <ExternalLink className="w-3.5 h-3.5 text-[#77716B] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] shrink-0 ml-2" />
+                              </a>
+                            );
+                          })}
                         </div>
                       </div>
                     )}

@@ -93,9 +93,9 @@ export const initialAnalysisResult = {
       summary: "Understand container concepts, craft multi-stage Dockerfiles for React single-page apps, and configure local container stacks.",
       keyTopics: ["Dockerfiles & Layers", "Containerizing React Vite Apps", "Nginx Static Serving", "Docker Compose"],
       resources: [
-        { title: "Docker for Frontend Developers", type: "Interactive Video", provider: "freeCodeCamp", duration: "2.5 Hours", link: "#" },
-        { title: "Containerize a React App with Nginx", type: "Official Walkthrough", provider: "Docker Documentation", duration: "45 Mins", link: "#" },
-        { title: "Docker Compose for Local Web Stacks", type: "Hands-on Guide", provider: "Web Dev Community", duration: "1.5 Hours", link: "#" }
+        { title: "Docker Official Get Started Guide", type: "Official Documentation", provider: "Docker Documentation (docs.docker.com)", duration: "2 Hours", link: "https://docs.docker.com/get-started/" },
+        { title: "Containerize a React App with Nginx", type: "Official Walkthrough", provider: "Docker Documentation", duration: "45 Mins", link: "https://docs.docker.com/language/nodejs/containerize/" },
+        { title: "Docker Compose for Local Web Stacks", type: "Official Guide", provider: "Docker Documentation", duration: "1.5 Hours", link: "https://docs.docker.com/compose/" }
       ]
     },
     {
@@ -107,9 +107,9 @@ export const initialAnalysisResult = {
       summary: "Master deploying web applications to Amazon S3, configuring CloudFront CDN for global caching, and securing routes with IAM.",
       keyTopics: ["Amazon S3 Static Hosting", "CloudFront CDN Caching", "Route 53 Custom Domains", "AWS IAM Security Essentials"],
       resources: [
-        { title: "AWS Cloud Practitioner Essentials", type: "Free Course", provider: "AWS Skill Builder", duration: "6 Hours", link: "#" },
-        { title: "Deploying Modern React SPAs to S3 + CloudFront", type: "Tutorial", provider: "AWS Community", duration: "1.5 Hours", link: "#" },
-        { title: "AWS Lambda & Serverless for Frontends", type: "Practical Lab", provider: "Cloud Guru Labs", duration: "2 Hours", link: "#" }
+        { title: "AWS Cloud Practitioner Essentials", type: "Official Free Course", provider: "AWS Skill Builder", duration: "6 Hours", link: "https://aws.amazon.com/certification/certified-cloud-practitioner/" },
+        { title: "Deploying Modern React SPAs to S3 + CloudFront", type: "Official Tutorial", provider: "AWS Documentation", duration: "1.5 Hours", link: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html" },
+        { title: "AWS Lambda & Serverless for Frontends", type: "Official Guide", provider: "AWS Documentation", duration: "2 Hours", link: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html" }
       ]
     },
     {
@@ -121,9 +121,9 @@ export const initialAnalysisResult = {
       summary: "Understand client-side state architecture, bundle splitting, CDN caching, rate limiting, and scalable REST API conventions.",
       keyTopics: ["Frontend Performance & Core Web Vitals", "Client-Side Caching (SWR/React Query)", "Code Splitting & Lazy Loading", "RESTful API Conventions & Error Handling"],
       resources: [
-        { title: "Frontend System Design Handbook", type: "Open Source Guide", provider: "GitHub / GreatFrontEnd", duration: "4 Hours", link: "#" },
-        { title: "Optimizing Web Vitals for Production", type: "Engineering Guide", provider: "web.dev by Google", duration: "2 Hours", link: "#" },
-        { title: "Designing Resilient API Clients", type: "Deep Dive Article", provider: "Engineering Blog", duration: "1.5 Hours", link: "#" }
+        { title: "Frontend System Design Handbook", type: "Open Source Guide", provider: "System Design Primer", duration: "4 Hours", link: "https://github.com/donnemartin/system-design-primer" },
+        { title: "Optimizing Web Vitals for Production", type: "Official Guide", provider: "web.dev by Google", duration: "2 Hours", link: "https://web.dev/explore/fast" },
+        { title: "Designing Resilient API Clients", type: "Official Documentation", provider: "MDN Web Docs", duration: "1.5 Hours", link: "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch" }
       ]
     }
   ],

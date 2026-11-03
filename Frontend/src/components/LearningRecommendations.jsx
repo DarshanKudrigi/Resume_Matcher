@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { BookOpen, Clock, Award, X, CheckCircle2, ChevronRight, ExternalLink } from 'lucide-react';
 
+const getSafeDocUrl = (url, skillName, title) => {
+  if (url && typeof url === 'string' && url !== '#' && (url.startsWith('http://') || url.startsWith('https://'))) {
+    return url;
+  }
+  const query = encodeURIComponent(skillName || title || 'documentation');
+  return `https://devdocs.io/#q=${query}`;
+};
+
 export default function LearningRecommendations({ recommendations = [], className = "" }) {
   const [selectedSkillModal, setSelectedSkillModal] = useState(null);
 
@@ -130,29 +138,32 @@ export default function LearningRecommendations({ recommendations = [], classNam
                 Recommended Official Documentation:
               </span>
               <div className="space-y-2.5">
-                {selectedSkillModal.resources?.map((res, i) => (
-                  <a
-                    key={i}
-                    href={res.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/60 dark:bg-[#1F1D1A]/60 hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A] hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-all flex items-center justify-between gap-3 text-xs group cursor-pointer"
-                    title={`Open official documentation in new tab: ${res.link}`}
-                  >
-                    <div>
-                      <p className="font-semibold text-[#2F2A26] dark:text-[#F4EFE8] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] transition-colors flex items-center gap-1.5">
-                        <span>{res.title}</span>
-                        <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
-                      </p>
-                      <p className="text-[11px] text-[#77716B] dark:text-[#B9B0A5] mt-0.5">
-                        {res.provider} • {res.type} {res.duration ? `(${res.duration})` : ''}
-                      </p>
-                    </div>
-                    <span className="px-2.5 py-1 rounded bg-[#FFFFFF] dark:bg-[#292622] border border-[#E7E0D8] dark:border-[#413B34] group-hover:bg-[#7C5C3B] group-hover:text-white dark:group-hover:bg-[#C49A6C] dark:group-hover:text-[#1F1D1A] text-[10px] font-semibold text-[#7C5C3B] dark:text-[#C49A6C] transition-colors shrink-0 flex items-center gap-1">
-                      Read Docs <ExternalLink className="w-2.5 h-2.5" />
-                    </span>
-                  </a>
-                ))}
+                {selectedSkillModal.resources?.map((res, i) => {
+                  const safeUrl = getSafeDocUrl(res.link, selectedSkillModal.skill, res.title);
+                  return (
+                    <a
+                      key={i}
+                      href={safeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/60 dark:bg-[#1F1D1A]/60 hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A] hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-all flex items-center justify-between gap-3 text-xs group cursor-pointer"
+                      title={`Open official documentation in new tab: ${safeUrl}`}
+                    >
+                      <div>
+                        <p className="font-semibold text-[#2F2A26] dark:text-[#F4EFE8] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] transition-colors flex items-center gap-1.5">
+                          <span>{res.title}</span>
+                          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
+                        </p>
+                        <p className="text-[11px] text-[#77716B] dark:text-[#B9B0A5] mt-0.5">
+                          {res.provider} • {res.type} {res.duration ? `(${res.duration})` : ''}
+                        </p>
+                      </div>
+                      <span className="px-2.5 py-1 rounded bg-[#FFFFFF] dark:bg-[#292622] border border-[#E7E0D8] dark:border-[#413B34] group-hover:bg-[#7C5C3B] group-hover:text-white dark:group-hover:bg-[#C49A6C] dark:group-hover:text-[#1F1D1A] text-[10px] font-semibold text-[#7C5C3B] dark:text-[#C49A6C] transition-colors shrink-0 flex items-center gap-1">
+                        Read Docs <ExternalLink className="w-2.5 h-2.5" />
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
 

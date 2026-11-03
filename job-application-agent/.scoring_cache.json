@@ -260,5 +260,118 @@
     "reason": "Low skill match and insufficient experience.",
     "experience_required": 5,
     "experience_match": false
+  },
+  "c6c400b57d:c311487fc263b5c4": {
+    "score": 0.66,
+    "matched_skills": [
+      "software development",
+      "cloud computing",
+      "full stack development",
+      "project management",
+      "client communication",
+      "testing and validation",
+      "collaboration"
+    ],
+    "missing_skills": [
+      "generative AI",
+      "agile methodologies",
+      "data-driven decision-making",
+      "enterprise-level platform experience",
+      "consulting/mentoring",
+      "requirement gathering",
+      "solution design"
+    ],
+    "recommendation": "maybe",
+    "reason": "Candidate shows solid software and cloud experience but lacks several key consulting and emerging tech skills required.",
+    "experience_required": 0,
+    "experience_match": true
+  },
+  "606737d07b:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "Cloud Computing"
+    ],
+    "missing_skills": [
+      "Machine Learning",
+      "Data Analysis",
+      "Deep Learning",
+      "Python Programming",
+      "Generative AI",
+      "NLP",
+      "Large Language Models",
+      "Prompt Engineering",
+      "Agentic AI"
+    ],
+    "recommendation": "skip",
+    "reason": "Low match on AI/ML skills, only cloud experience aligns",
+    "experience_required": 0,
+    "experience_match": true
+  },
+  "38cb8676fc:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [],
+    "missing_skills": [
+      "Azure OpenAI",
+      "Copilot Studio",
+      "Microsoft Bot Framework",
+      "AI Foundry",
+      "Retrieval-Augmented Generation",
+      "LangChain",
+      "Semantic Kernel",
+      "Microsoft Teams integration",
+      "SharePoint integration",
+      "Dynamics 365 integration",
+      "prompt engineering",
+      "CI/CD",
+      "model deployment",
+      "monitoring",
+      "optimization"
+    ],
+    "recommendation": "skip",
+    "reason": "Limited AI/ML experience and no exposure to Microsoft AI stack results in a low match score",
+    "experience_required": 5,
+    "experience_match": false
+  },
+  "e5cbf1597d:c311487fc263b5c4": {
+    "score": 0.1,
+    "matched_skills": [],
+    "missing_skills": [
+      "Python",
+      "CI/CD",
+      "Red-Teaming",
+      "Bias detection",
+      "Toxicity detection",
+      "Explainability (SHAP/LIME)",
+      "Evaluation datasets",
+      "Audit evidence",
+      "Threshold gates",
+      "AI governance"
+    ],
+    "recommendation": "skip",
+    "reason": "Candidate lacks required AI trust and compliance skills",
+    "experience_required": 0,
+    "experience_match": true
+  },
+  "7a73a35d0f:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "Google Cloud",
+      "API development"
+    ],
+    "missing_skills": [
+      "Python",
+      "LLM APIs",
+      "LangChain",
+      "Prompt engineering",
+      "RAG",
+      "Vector databases",
+      "Machine learning",
+      "Deep learning",
+      "NLP"
+    ],
+    "recommendation": "skip",
+    "reason": "Low technical match (0.2) due to missing core AI/ML skills",
+    "experience_required": 0,
+    "experience_match": true
   }
 }

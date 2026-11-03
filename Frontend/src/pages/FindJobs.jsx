@@ -38,6 +38,16 @@ const QUICK_ROLES = [
   "AI Engineer"
 ];
 
+const resolveDocUrl = (rec) => {
+  if (!rec) return "https://devdocs.io";
+  const url = rec.docUrl || rec.url || rec.link;
+  if (url && typeof url === 'string' && url !== '#' && (url.startsWith('http://') || url.startsWith('https://'))) {
+    return url;
+  }
+  const query = encodeURIComponent(rec.skill || 'documentation');
+  return `https://devdocs.io/#q=${query}`;
+};
+
 const QUICK_LOCATIONS = [
   "Bangalore, Karnataka",
   "Remote",
@@ -961,25 +971,28 @@ export default function FindJobs() {
                     Official Documentation Learning Roadmaps
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {selectedJobModal.learningRecommendations.map((rec, i) => (
-                      <a
-                        key={i}
-                        href={rec.docUrl || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/40 dark:bg-[#1F1D1A]/40 hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-colors flex items-center justify-between group"
-                      >
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-xs text-[#2F2A26] dark:text-[#F4EFE8]">
-                            {rec.skill}
-                          </span>
-                          <p className="text-[10px] text-[#77716B] dark:text-[#B9B0A5] line-clamp-1">
-                            {rec.sourceName || "Official Documentation Guide"}
-                          </p>
-                        </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-[#77716B] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] shrink-0 ml-2" />
-                      </a>
-                    ))}
+                    {selectedJobModal.learningRecommendations.map((rec, i) => {
+                      const safeDocUrl = resolveDocUrl(rec);
+                      return (
+                        <a
+                          key={i}
+                          href={safeDocUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-3 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/40 dark:bg-[#1F1D1A]/40 hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-colors flex items-center justify-between group"
+                        >
+                          <div className="space-y-0.5">
+                            <span className="font-bold text-xs text-[#2F2A26] dark:text-[#F4EFE8]">
+                              {rec.skill}
+                            </span>
+                            <p className="text-[10px] text-[#77716B] dark:text-[#B9B0A5] line-clamp-1">
+                              {rec.sourceName || "Official Documentation Guide"}
+                            </p>
+                          </div>
+                          <ExternalLink className="w-3.5 h-3.5 text-[#77716B] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] shrink-0 ml-2" />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               )}

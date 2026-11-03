@@ -1,0 +1,450 @@
+[
+  {
+    "category": "System",
+    "test_name": "Root Status and Info",
+    "method": "GET",
+    "endpoint": "/",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 13.37,
+    "details": {
+      "name": "ResumeMate API",
+      "version": "1.0.0",
+      "docs": "/docs",
+      "apiPrefix": "/api",
+      "status": "healthy"
+    }
+  },
+  {
+    "category": "System",
+    "test_name": "Health Check",
+    "method": "GET",
+    "endpoint": "/api/health",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 1.06,
+    "details": {
+      "status": "ok",
+      "database": "PostgreSQL",
+      "geminiEnabled": true
+    }
+  },
+  {
+    "category": "Auth",
+    "test_name": "Login with Pre-Seeded User",
+    "method": "POST",
+    "endpoint": "/api/auth/login",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 468.08,
+    "details": {
+      "email": "darshan.sharma@college.edu",
+      "token_type": "bearer"
+    }
+  },
+  {
+    "category": "Auth",
+    "test_name": "Login with Invalid Password (Rejected 401)",
+    "method": "POST",
+    "endpoint": "/api/auth/login",
+    "status_code": 401,
+    "expected_status": 401,
+    "passed": true,
+    "latency_ms": 698.25,
+    "details": {
+      "detail": "Incorrect email or password"
+    }
+  },
+  {
+    "category": "Auth",
+    "test_name": "Register New User Account",
+    "method": "POST",
+    "endpoint": "/api/auth/register",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 728.36,
+    "details": {
+      "userId": "14e2bfa7-c3fe-4c6b-827f-f934059ff0f1",
+      "email": "tester_7a9e5a@example.com"
+    }
+  },
+  {
+    "category": "Auth",
+    "test_name": "Duplicate Email Registration (Rejected 400)",
+    "method": "POST",
+    "endpoint": "/api/auth/register",
+    "status_code": 400,
+    "expected_status": 400,
+    "passed": true,
+    "latency_ms": 11.8,
+    "details": {
+      "detail": "User with this email already exists"
+    }
+  },
+  {
+    "category": "Auth",
+    "test_name": "Get Profile Unauthorized without Token (Rejected 401)",
+    "method": "GET",
+    "endpoint": "/api/auth/me",
+    "status_code": 401,
+    "expected_status": 401,
+    "passed": true,
+    "latency_ms": 4.55,
+    "details": {
+      "detail": "Authentication credentials not provided"
+    }
+  },
+  {
+    "category": "Auth",
+    "test_name": "Get Current User Profile (Authenticated 200)",
+    "method": "GET",
+    "endpoint": "/api/auth/me",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 8.06,
+    "details": {
+      "id": "14e2bfa7-c3fe-4c6b-827f-f934059ff0f1",
+      "name": "Quality Engineer 7a9e5a",
+      "email": "tester_7a9e5a@example.com"
+    }
+  },
+  {
+    "category": "Users",
+    "test_name": "Update Profile Unauthorized without Token (Rejected 401)",
+    "method": "PUT",
+    "endpoint": "/api/users/profile",
+    "status_code": 401,
+    "expected_status": 401,
+    "passed": true,
+    "latency_ms": 7.07,
+    "details": {
+      "detail": "Authentication credentials not provided"
+    }
+  },
+  {
+    "category": "Users",
+    "test_name": "Update User Profile & Social Links (Authenticated 200)",
+    "method": "PUT",
+    "endpoint": "/api/users/profile",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 20.07,
+    "details": {
+      "headline": "Senior Full-Stack Cloud & QA Architect",
+      "location": "Seattle, WA"
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "List All Resumes",
+    "method": "GET",
+    "endpoint": "/api/resumes",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 15.09,
+    "details": {
+      "count": 0
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Create New Resume",
+    "method": "POST",
+    "endpoint": "/api/resumes",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 35.32,
+    "details": {
+      "createdResumeId": "res-db896847",
+      "title": "Cloud DevOps Engineer Resume"
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Get Resume by ID",
+    "method": "GET",
+    "endpoint": "/api/resumes/res-db896847",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 12.86,
+    "details": {
+      "id": "res-db896847",
+      "title": "Cloud DevOps Engineer Resume"
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Update Resume by ID",
+    "method": "PUT",
+    "endpoint": "/api/resumes/res-db896847",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 24.0,
+    "details": {
+      "updatedTitle": "Principal Cloud DevOps Engineer Resume",
+      "atsScore": 95
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Duplicate Resume",
+    "method": "POST",
+    "endpoint": "/api/resumes/res-db896847/duplicate",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 19.15,
+    "details": {
+      "duplicatedId": "res-e965bf65",
+      "title": "Principal Cloud DevOps Engineer Resume (Copy)"
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Delete Resume by ID",
+    "method": "DELETE",
+    "endpoint": "/api/resumes/res-e965bf65",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 14.52,
+    "details": {
+      "status": "deleted",
+      "id": "res-e965bf65"
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Get Non-Existent Resume (Verify 404 Not Found)",
+    "method": "GET",
+    "endpoint": "/api/resumes/res-e965bf65",
+    "status_code": 404,
+    "expected_status": 404,
+    "passed": true,
+    "latency_ms": 9.18,
+    "details": {
+      "detail": "Resume not found"
+    }
+  },
+  {
+    "category": "Resumes",
+    "test_name": "Upload & Parse Resume File",
+    "method": "POST",
+    "endpoint": "/api/resumes/upload",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 53.37,
+    "details": {
+      "fileId": "file-aba0f1e587",
+      "name": "Darshan_Resume.txt",
+      "parsedCandidate": "Darshan Sharma"
+    }
+  },
+  {
+    "category": "Jobs",
+    "test_name": "List All Job Postings",
+    "method": "GET",
+    "endpoint": "/api/jobs",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 7.02,
+    "details": {
+      "jobCount": 2,
+      "firstJob": "Frontend Software Engineer (React)"
+    }
+  },
+  {
+    "category": "Jobs",
+    "test_name": "Parse Job from Sample Match URL",
+    "method": "POST",
+    "endpoint": "/api/jobs/parse",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": false,
+    "latency_ms": 2556.83,
+    "details": {
+      "company": null,
+      "title": null,
+      "requiredSkills": null
+    }
+  },
+  {
+    "category": "Jobs",
+    "test_name": "Parse Job from External Brand URL (Google Heuristic)",
+    "method": "POST",
+    "endpoint": "/api/jobs/parse",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 10036.85,
+    "details": {
+      "company": "Google",
+      "title": "Not specified"
+    }
+  },
+  {
+    "category": "Jobs",
+    "test_name": "Parse Job from Raw Text Description",
+    "method": "POST",
+    "endpoint": "/api/jobs/parse",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 12464.55,
+    "details": {
+      "title": "Staff Cloud Architect",
+      "extractedSkills": [
+        "Git",
+        "CI/CD pipelines",
+        "SQL databases"
+      ]
+    }
+  },
+  {
+    "category": "Jobs",
+    "test_name": "Parse Job with Empty Payload (Rejected 400)",
+    "method": "POST",
+    "endpoint": "/api/jobs/parse",
+    "status_code": 400,
+    "expected_status": 400,
+    "passed": true,
+    "latency_ms": 5.44,
+    "details": {
+      "detail": "Must provide either a job URL or job description text."
+    }
+  },
+  {
+    "category": "Analysis",
+    "test_name": "Analyze Resume by ResumeId & JobId",
+    "method": "POST",
+    "endpoint": "/api/analyze",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 25.78,
+    "details": {
+      "matchScore": 31,
+      "atsScore": 90,
+      "status": "Low Match",
+      "matchedSkillsCount": 3,
+      "missingSkillsCount": 5
+    }
+  },
+  {
+    "category": "Analysis",
+    "test_name": "Analyze Resume by UploadedFileId & Custom Job Text",
+    "method": "POST",
+    "endpoint": "/api/analyze",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 58.25,
+    "details": {
+      "matchScore": 96,
+      "atsScore": 90,
+      "status": "Strong Match"
+    }
+  },
+  {
+    "category": "Analysis",
+    "test_name": "Analyze Resume with Default Fallback Payload",
+    "method": "POST",
+    "endpoint": "/api/analyze",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 139.41,
+    "details": {
+      "matchScore": 60,
+      "status": "Moderate Match"
+    }
+  },
+  {
+    "category": "Dashboard",
+    "test_name": "Get Dashboard Stats (Public/Unauthenticated)",
+    "method": "GET",
+    "endpoint": "/api/dashboard/stats",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 23.61,
+    "details": {
+      "totalAnalyses": 1,
+      "averageMatchScore": 82,
+      "topMissingSkill": "Docker",
+      "latestMatchScore": 82,
+      "totalSavedResumes": 2
+    }
+  },
+  {
+    "category": "Dashboard",
+    "test_name": "Get Dashboard Stats (Authenticated)",
+    "method": "GET",
+    "endpoint": "/api/dashboard/stats",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 7.93,
+    "details": {
+      "totalAnalyses": 1,
+      "averageMatchScore": 82,
+      "topMissingSkill": "Docker",
+      "latestMatchScore": 82,
+      "totalSavedResumes": 1
+    }
+  },
+  {
+    "category": "Chat",
+    "test_name": "Interactive AI Chat Assistant Response",
+    "method": "POST",
+    "endpoint": "/api/chat",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 1272.17,
+    "details": {
+      "replySnippet": "Your 82% match score is calculated because you satisfy 100% of the core required skills (JavaScript, React, HTML, CSS)! ...",
+      "suggestionsCount": 4
+    }
+  },
+  {
+    "category": "Chat",
+    "test_name": "AI Builder Suggestions (Default Role)",
+    "method": "GET",
+    "endpoint": "/api/chat/suggestions",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 3.37,
+    "details": {
+      "summariesCount": 3,
+      "bulletPointsCount": 4
+    }
+  },
+  {
+    "category": "Chat",
+    "test_name": "AI Builder Suggestions (Custom Role: Cloud DevOps)",
+    "method": "GET",
+    "endpoint": "/api/chat/suggestions?role=Cloud+DevOps+Engineer",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 5.01,
+    "details": {
+      "summariesCount": 3,
+      "bulletPointsCount": 4
+    }
+  }
+]
