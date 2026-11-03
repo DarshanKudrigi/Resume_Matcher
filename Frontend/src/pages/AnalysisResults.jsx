@@ -23,6 +23,13 @@ export default function AnalysisResults() {
     window.print();
   };
 
+  const matchScore = analysisResult?.matchScore ?? 0;
+  const atsScore = analysisResult?.atsScore ?? (analysisResult?.atsBreakdown?.score ?? 0);
+  const status = analysisResult?.status || "Candidate Assessment";
+  const matchedCount = analysisResult?.matchedSkills?.length || 0;
+  const missingCount = analysisResult?.missingSkills?.length || 0;
+  const totalTargetCount = matchedCount + missingCount;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F5F0] dark:bg-[#1F1D1A] text-[#2F2A26] dark:text-[#F4EFE8] transition-colors">
       <Navbar />
@@ -43,14 +50,18 @@ export default function AnalysisResults() {
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#2F2A26] dark:text-[#F4EFE8]">
                 Resume Analysis
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#6B8E6B]/15 text-[#6B8E6B]">
-                82% Match
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                matchScore >= 75 
+                  ? 'bg-[#6B8E6B]/15 text-[#6B8E6B]'
+                  : (matchScore >= 50 ? 'bg-[#C99545]/15 text-[#C99545]' : 'bg-red-500/15 text-red-500')
+              }`}>
+                {matchScore}% Match
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#77716B] dark:text-[#B9B0A5] mt-1 flex items-center gap-2">
-              <span>Target Role: <strong className="text-[#2F2A26] dark:text-[#F4EFE8]">{currentJob?.title || "Frontend Engineer"}</strong></span>
+              <span>Target Role: <strong className="text-[#2F2A26] dark:text-[#F4EFE8]">{currentJob?.title || "Target Position"}</strong></span>
               <span>•</span>
-              <span>Company: <strong className="text-[#2F2A26] dark:text-[#F4EFE8]">{currentJob?.company || "Apex Cloud Technologies"}</strong></span>
+              <span>Company: <strong className="text-[#2F2A26] dark:text-[#F4EFE8]">{currentJob?.company || "Target Company"}</strong></span>
             </p>
           </div>
 
@@ -90,12 +101,14 @@ export default function AnalysisResults() {
               <span className="text-xs font-bold uppercase tracking-wider text-[#7C5C3B] dark:text-[#C49A6C]">
                 Executive Assessment
               </span>
-              <span className="text-[11px] px-2 py-0.5 rounded bg-[#6B8E6B]/15 text-[#6B8E6B] font-semibold">
-                Strong Candidate Profile
+              <span className={`text-[11px] px-2 py-0.5 rounded font-semibold ${
+                matchScore >= 75 ? 'bg-[#6B8E6B]/15 text-[#6B8E6B]' : 'bg-[#C99545]/15 text-[#C99545]'
+              }`}>
+                {status}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#2F2A26] dark:text-[#F4EFE8] leading-relaxed">
-              {analysisResult.summary}
+              {analysisResult?.summary || "Analysis completed based on extracted competencies."}
             </p>
           </div>
 
@@ -105,7 +118,7 @@ export default function AnalysisResults() {
                 ATS Pass Rate
               </span>
               <span className="text-base font-extrabold text-[#6B8E6B]">
-                86%
+                {atsScore}%
               </span>
             </div>
             <div className="p-3 rounded-lg bg-[#F7F5F0] dark:bg-[#1F1D1A] border border-[#E7E0D8] dark:border-[#413B34] text-center">
@@ -113,7 +126,7 @@ export default function AnalysisResults() {
                 Skills Matched
               </span>
               <span className="text-base font-extrabold text-[#7C5C3B] dark:text-[#C49A6C]">
-                5 / 8
+                {matchedCount} / {totalTargetCount || matchedCount}
               </span>
             </div>
           </div>
@@ -123,17 +136,17 @@ export default function AnalysisResults() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           <div className="lg:col-span-1">
             <MatchScore 
-              score={analysisResult.matchScore || 82} 
+              score={matchScore} 
               title="Match Score" 
-              subtitle="Comparison against Apex Cloud Requirements"
+              subtitle={`Comparison against ${currentJob?.company || 'Target Company'} Requirements`}
             />
           </div>
 
           <div className="lg:col-span-2">
             <SkillCard 
-              matchedSkills={analysisResult.matchedSkills}
-              missingSkills={analysisResult.missingSkills}
-              partialSkills={analysisResult.partialSkills}
+              matchedSkills={analysisResult?.matchedSkills || []}
+              missingSkills={analysisResult?.missingSkills || []}
+              partialSkills={analysisResult?.partialSkills || []}
             />
           </div>
         </div>
@@ -141,35 +154,16 @@ export default function AnalysisResults() {
         {/* Row 2: Skill Gap Visual Comparison & ATS Checker */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2">
-            <SkillGap skillGaps={analysisResult.skillGaps} />
+            <SkillGap skillGaps={analysisResult?.skillGaps || []} />
           </div>
 
           <div className="lg:col-span-1">
-            <ATSChecker score={analysisResult.atsScore || 86} />
+            <ATSChecker atsBreakdown={analysisResult?.atsBreakdown} />
           </div>
         </div>
 
-        {/* Row 3: Recommended Learning Cards */}
-        <LearningRecommendations recommendations={analysisResult.learningRecommendations} />
-
-        {/* Bottom CTA for Builder */}
-        <div className="rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] p-6 text-center space-y-3 shadow-warm-sm no-print">
-          <h4 className="text-base font-bold text-[#2F2A26] dark:text-[#F4EFE8]">
-            Want to boost your match score to 90%+?
-          </h4>
-          <p className="text-xs text-[#77716B] dark:text-[#B9B0A5] max-w-xl mx-auto">
-            Use our built-in Resume Builder to inject suggested containerization and cloud keywords directly into your project bullet points.
-          </p>
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => navigate('/builder')}
-              className="px-6 py-2.5 rounded-lg bg-[#7C5C3B] dark:bg-[#C49A6C] text-[#F7F5F0] dark:text-[#1F1D1A] font-bold text-xs shadow-warm-sm transition-colors hover:bg-[#66492C]"
-            >
-              Update Resume in Builder
-            </button>
-          </div>
-        </div>
+        {/* Row 3: Personalized Learning Recommendations */}
+        <LearningRecommendations recommendations={analysisResult?.learningRecommendations || []} />
 
       </main>
 

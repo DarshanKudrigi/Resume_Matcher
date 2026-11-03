@@ -52,38 +52,35 @@ export const api = {
     }
     return data;
   },
-
-  register: async (userData) => {
-    const data = await request('/auth/register', {
+  signup: (payload) =>
+    request('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify(userData),
-    });
-    if (data?.access_token) {
-      localStorage.setItem('resumemate_token', data.access_token);
-    }
-    return data;
+      body: JSON.stringify(payload),
+    }),
+  getMe: () => request('/auth/me'),
+  logout: () => {
+    localStorage.removeItem('resumemate_token');
   },
 
-  getMe: () => request('/auth/me'),
-
-  updateProfile: (profileData) =>
-    request('/users/profile', {
+  // Users
+  updateProfile: (payload) =>
+    request('/users/me', {
       method: 'PUT',
-      body: JSON.stringify(profileData),
+      body: JSON.stringify(payload),
     }),
 
   // Resumes
   getResumes: () => request('/resumes'),
   getResume: (id) => request(`/resumes/${id}`),
-  createResume: (resumeData) =>
+  createResume: (payload) =>
     request('/resumes', {
       method: 'POST',
-      body: JSON.stringify(resumeData),
+      body: JSON.stringify(payload),
     }),
-  updateResume: (id, resumeData) =>
+  updateResume: (id, payload) =>
     request(`/resumes/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(resumeData),
+      body: JSON.stringify(payload),
     }),
   deleteResume: (id) =>
     request(`/resumes/${id}`, {
@@ -122,6 +119,57 @@ export const api = {
 
   // Dashboard
   getDashboardStats: () => request('/dashboard/stats'),
+
+  // Recommendations
+  searchJobRecommendations: (payload) =>
+    request('/recommendations/search', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  streamJobRecommendations: async (payload, onEvent, onError) => {
+    try {
+      const res = await fetch(`${API_BASE}/recommendations/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'Streaming failed');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop(); // keep trailing partial line
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(trimmed.slice(6));
+              if (onEvent) onEvent(data);
+            } catch (parseErr) {
+              console.warn('SSE parse error:', parseErr);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (onError) onError(e);
+      else throw e;
+    }
+  },
 
   // Chat
   sendChatMessage: (payload) =>

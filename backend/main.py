@@ -17,7 +17,8 @@ from app.routers import (
     jobs_router,
     analyze_router,
     dashboard_router,
-    chat_router
+    chat_router,
+    recommendations_router
 )
 
 # Setup logging
@@ -203,6 +204,7 @@ app.include_router(jobs_router, prefix=settings.API_PREFIX)
 app.include_router(analyze_router, prefix=settings.API_PREFIX)
 app.include_router(dashboard_router, prefix=settings.API_PREFIX)
 app.include_router(chat_router, prefix=settings.API_PREFIX)
+app.include_router(recommendations_router, prefix=settings.API_PREFIX)
 
 @app.get("/")
 async def root():

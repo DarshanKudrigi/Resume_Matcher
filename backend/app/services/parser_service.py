@@ -19,21 +19,68 @@ SECTION_PATTERNS = {
     "education": re.compile(r'^\s*(?:education|academic\s+background|academic\s+qualifications|qualifications|academic\s+history)\b', re.IGNORECASE),
     "projects": re.compile(r'^\s*(?:projects|academic\s+projects|personal\s+projects|key\s+projects|technical\s+projects)\b', re.IGNORECASE),
     "certifications": re.compile(r'^\s*(?:certifications|certificates|licenses|courses|online\s+certifications)\b', re.IGNORECASE),
-    "achievements": re.compile(r'^\s*(?:achievements|awards|honors|extracurricular|accomplishments)\b', re.IGNORECASE),
+    "achievements": re.compile(r'^\s*(?:achievements|awards|honors|accomplishments)\b', re.IGNORECASE),
+    "leadership": re.compile(r'^\s*(?:leadership|positions?\s+of\s+responsibility|extracurricular|activities|volunteer)\b', re.IGNORECASE),
 }
+
+def defragment_vertical_text(text: str) -> str:
+    """
+    Detects if text was extracted with 1-2 words per line (common PDF fragmentation artifact)
+    and reconstructs coherent lines and bullet points.
+    """
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    if not lines or len(lines) < 20:
+        return text
+    single_word_count = sum(1 for l in lines if len(l.split()) <= 2)
+    if (single_word_count / len(lines)) < 0.55:
+        return text
+
+    logger.info("Detected word-fragmented text in PDF extraction. Defragmenting lines...")
+    reconstructed = []
+    current_buf = []
+
+    for l in lines:
+        is_bullet = l.startswith(('•', '-', '*', '–', '●', '○'))
+        is_heading = any(h in l.upper() for h in [
+            "EXPERIENCE", "PROJECTS", "EDUCATION", "SKILLS", "SUMMARY", "CERTIFICATIONS"
+        ]) and len(l.split()) <= 4
+
+        if is_heading:
+            if current_buf:
+                reconstructed.append(" ".join(current_buf))
+                current_buf = []
+            reconstructed.append(f"\n{l}\n")
+        elif is_bullet:
+            if current_buf:
+                reconstructed.append(" ".join(current_buf))
+                current_buf = []
+            current_buf.append(l)
+        else:
+            current_buf.append(l)
+            if l.endswith(('.', ':', ';')):
+                reconstructed.append(" ".join(current_buf))
+                current_buf = []
+
+    if current_buf:
+        reconstructed.append(" ".join(current_buf))
+
+    return "\n".join(reconstructed)
 
 def clean_extracted_text(raw_text: str) -> str:
     """Removes null bytes and cleans excessive whitespaces while preserving newlines."""
     if not raw_text:
         return ""
     text = raw_text.replace('\x00', '')
+    # Normalize bullet characters at start of lines
+    text = re.sub(r'(?m)^(\s*)[\ufffd\u2022●○▪▫·]\s*', r'\1• ', text)
     # Normalize excessive carriage returns
     text = text.replace('\r\n', '\n').replace('\r', '\n')
     # Collapse 3 or more newlines into 2
     text = re.sub(r'\n{3,}', '\n\n', text)
     # Strip trailing whitespace on each line
     lines = [re.sub(r'[ \t]+$', '', line) for line in text.split('\n')]
-    return '\n'.join(lines).strip()
+    cleaned = '\n'.join(lines).strip()
+    return defragment_vertical_text(cleaned)
 
 def extract_text_from_pdf(file_bytes: bytes) -> Tuple[str, int, bool, str]:
     """
@@ -59,7 +106,12 @@ def extract_text_from_pdf(file_bytes: bytes) -> Tuple[str, int, bool, str]:
     
     for i, page in enumerate(reader.pages):
         try:
-            page_text = page.extract_text() or ""
+            try:
+                page_text = page.extract_text(extraction_mode="layout") or ""
+            except Exception:
+                page_text = page.extract_text() or ""
+            if not page_text.strip():
+                page_text = page.extract_text() or ""
             if page_text.strip():
                 text_parts.append(page_text.strip())
         except Exception as e:
@@ -254,6 +306,60 @@ def extract_education_entries(education_text: str, full_text: str) -> List[Dict[
 
     return entries
 
+BULLET_CHARS = ('\u2022', '•', '-', '*', '–', '●', '○', '▪', '▫', '·')
+
+TECH_KEYWORDS = [
+    'react', 'next.js', 'fastapi', 'node.js', 'express', 'mongodb', 'python', 'java',
+    'c++', 'javascript', 'typescript', 'redis', 'rest', 'jwt', 'aws', 'docker', 'sql',
+    'postgresql', 'mysql', 'flask', 'django', 'tailwind', 'html', 'css', 'vue', 'angular'
+]
+
+KNOWN_SECTION_HEADINGS = {
+    'leadership', 'positions of responsibility', 'extracurricular', 'certifications',
+    'achievements', 'awards', 'education', 'experience', 'skills', 'summary'
+}
+
+PROJECT_ACTION_VERBS = {
+    'developed', 'built', 'created', 'designed', 'implemented', 'led', 'managed',
+    'worked', 'automated', 'integrated', 'engineered', 'contributed', 'an', 'a',
+    'the', 'collaborated', 'utilized', 'spearheaded', 'facilitated', 'responsible'
+}
+
+STOP_PROJECT_WORDS = {
+    "including", "to", "and", "or", "in", "with", "etc", "etc.", "also", "for", "by", "on", "at", "as", "from",
+    "live", "browse", "vm", "vcloud", "azure", "present", "recent", "none", "n/a", "na", "remote", "fixed"
+}
+
+def split_title_and_tech(line: str) -> Tuple[str, str]:
+    """Separates project title from inline technology listing."""
+    earliest_idx = len(line)
+    for kw in TECH_KEYWORDS:
+        m = re.search(r'\b' + re.escape(kw) + r'\b', line, re.IGNORECASE)
+        if m and m.start() < earliest_idx:
+            after = line[m.start():]
+            if ',' in after or len(after.split()) <= 6:
+                earliest_idx = m.start()
+    if earliest_idx < len(line):
+        title_part = line[:earliest_idx].strip(' ,-–|:\ufffd')
+        tech_part = line[earliest_idx:].strip(' ,-–|:\ufffd')
+        return title_part, tech_part
+    return line.strip(' ,-–|:\ufffd'), ''
+
+def is_pure_tech_line(line: str) -> bool:
+    """Checks whether a line is purely comma-separated technologies rather than a title."""
+    clean = line.strip(' ,-–|:\ufffd')
+    lower = clean.lower()
+    if lower.startswith(('technologies:', 'tech stack:', 'tools:', 'built with:')):
+        return True
+    if ',' in clean:
+        parts = [p.strip() for p in clean.split(',') if p.strip()]
+        if any(len(p.split()) > 3 or len(p) > 25 for p in parts):
+            return False
+        matched = sum(1 for p in parts if any(kw in p.lower() for kw in TECH_KEYWORDS))
+        if matched >= len(parts) * 0.6:
+            return True
+    return False
+
 def extract_experience_entries(experience_text: str) -> List[Dict[str, Any]]:
     """
     Parses experience text into structured roles, companies, dates, and bullet points.
@@ -262,58 +368,93 @@ def extract_experience_entries(experience_text: str) -> List[Dict[str, Any]]:
     if not experience_text.strip():
         return []
 
-    lines = [l.strip() for l in experience_text.splitlines() if l.strip()]
+    lines = experience_text.splitlines()
+    # Pre-stitch wrapped bullet lines
+    stitched_lines = []
+    for raw_l in lines:
+        line = raw_l.strip()
+        if not line:
+            continue
+        is_bullet = raw_l.lstrip().startswith(BULLET_CHARS)
+        is_continuation = (
+            stitched_lines and
+            not is_bullet and
+            (
+                raw_l.startswith(('   ', '\t', '  ')) or
+                (stitched_lines[-1]['is_bullet'] and line[0].islower())
+            )
+        )
+        if is_continuation:
+            stitched_lines[-1]['text'] += ' ' + line
+        else:
+            stitched_lines.append({'text': line, 'is_bullet': is_bullet})
+
     role_pattern = re.compile(
-        r'\b(Software Engineer|Frontend Developer|Backend Developer|Full Stack Developer|'
-        r'Web Developer|Intern|Engineering Intern|Software Developer|Developer|'
-        r'Data Scientist|Data Analyst|Cloud Engineer|DevOps Engineer|Consultant|Associate)\b',
+        r'\b(Engineering Intern|Software Engineering Intern|Full Stack Developer|'
+        r'Frontend Developer|Backend Developer|Software Developer|Software Engineer|'
+        r'Cloud Engineer|DevOps Engineer|Data Scientist|Data Analyst|'
+        r'Web Developer|Developer|Consultant|Associate|Intern)\b',
         re.IGNORECASE
     )
     date_pattern = re.compile(
-        r'\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}\s*[-–to]+\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4})|\d{4}\s*[-–]\s*(?:\d{4}|Present))\b',
+        r'\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[,.]?\s+\d{4}\s*[-–to]+\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[,.]?\s+\d{4})|\d{4}\s*[-–]\s*(?:\d{4}|Present))\b',
         re.IGNORECASE
     )
 
     entries = []
     current_entry = None
+    pending_company = ""
+    pending_location = ""
 
-    for line in lines:
-        role_match = role_pattern.search(line)
-        date_match = date_pattern.search(line)
-        is_bullet = line.startswith(('•', '-', '*', '–')) or (len(line) > 30 and current_entry and not role_match)
+    for item in stitched_lines:
+        line = item['text']
+        is_bullet = item['is_bullet']
+        clean_line = re.sub(r'^[•\-\*–●○▪▫·\s\ufffd]+', '', line).strip()
+        role_match = role_pattern.search(clean_line)
+        date_match = date_pattern.search(clean_line)
+
+        # Detect wide column layout: "COMPANY          LOCATION"
+        col_parts = [p.strip() for p in re.split(r'\s{3,}', clean_line) if p.strip()]
+        if not is_bullet and not role_match and not date_match and col_parts and len(col_parts[0].split()) <= 4:
+            pending_company = col_parts[0].strip(" ,.-|")
+            if len(col_parts) > 1:
+                pending_location = col_parts[1].strip(" ,.-|")
+            continue
 
         if role_match and not is_bullet:
             if current_entry:
                 entries.append(current_entry)
             
-            # Extract company from line if separator exists (e.g. "Role | Company" or "Role at Company")
-            company = ""
-            if " at " in line:
-                company = line.split(" at ")[-1].strip()
-            elif " - " in line:
-                parts = line.split(" - ")
-                company = parts[1].strip() if len(parts) > 1 else ""
-            elif " | " in line:
-                parts = line.split(" | ")
-                company = parts[1].strip() if len(parts) > 1 else ""
+            company = pending_company
+            location = pending_location or "Remote"
+
+            if " at " in clean_line:
+                company = clean_line.split(" at ")[-1].strip()
+            elif " | " in clean_line:
+                parts = clean_line.split(" | ")
+                company = parts[1].strip() if len(parts) > 1 else company
+            elif " - " in clean_line and not date_match:
+                parts = clean_line.split(" - ")
+                company = parts[1].strip() if len(parts) > 1 else company
 
             current_entry = {
                 "id": f"exp-{len(entries) + 1}",
                 "role": role_match.group(0),
                 "company": company or "Technology Company",
-                "location": "Remote",
+                "location": location,
                 "startDate": "",
                 "endDate": date_match.group(0) if date_match else "Recent",
                 "bullets": []
             }
         elif current_entry:
             if is_bullet:
-                cleaned_bullet = re.sub(r'^[•\-\*–\s]+', '', line).strip()
-                if cleaned_bullet:
-                    current_entry["bullets"].append(cleaned_bullet)
+                if clean_line:
+                    current_entry["bullets"].append(clean_line)
+            elif date_match:
+                current_entry["endDate"] = date_match.group(0)
             elif not current_entry["company"] or current_entry["company"] == "Technology Company":
-                if len(line.split()) <= 4:
-                    current_entry["company"] = line.strip(" ,.-|")
+                if not any(k in clean_line.lower() for k in ["present", "current", "202", "201", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]) and len(clean_line.split()) <= 4:
+                    current_entry["company"] = clean_line.strip(" ,.-|")
 
     if current_entry:
         entries.append(current_entry)
@@ -323,57 +464,105 @@ def extract_experience_entries(experience_text: str) -> List[Dict[str, Any]]:
 def extract_project_entries(projects_text: str) -> List[Dict[str, Any]]:
     """
     Parses projects text into structured project items.
-    Gracefully handles missing sections without hardcoding mock data.
+    Prevents single-word fragments, handles line-wrapping in PDF extraction,
+    and isolates technology stacks and bullet descriptions.
     """
     if not projects_text.strip():
         return []
 
-    lines = [l.strip() for l in projects_text.splitlines() if l.strip()]
+    lines = projects_text.splitlines()
+    stitched_lines = []
+    for raw_l in lines:
+        line = raw_l.strip()
+        if not line:
+            continue
+        is_bullet = raw_l.lstrip().startswith(BULLET_CHARS)
+        is_continuation = (
+            stitched_lines and
+            not is_bullet and
+            not is_pure_tech_line(line) and
+            (
+                raw_l.startswith(('   ', '\t', '  ')) or
+                (
+                    stitched_lines[-1]['is_bullet'] and line[0].islower()
+                )
+            )
+        )
+        if is_continuation:
+            stitched_lines[-1]['text'] += ' ' + line
+        else:
+            stitched_lines.append({'text': line, 'is_bullet': is_bullet})
+
     entries = []
     current_proj = None
 
-    for line in lines:
-        is_bullet = line.startswith(('•', '-', '*', '–'))
-        # Detect project name: short line that does not start with bullet
-        if not is_bullet and len(line) < 60 and not line.lower().startswith(("technologies:", "tech stack:", "tools:")):
-            if current_proj and (current_proj["name"] or current_proj["bullets"]):
-                entries.append(current_proj)
+    for item in stitched_lines:
+        line = item['text']
+        is_bullet = item['is_bullet']
+        clean_line = re.sub(r'^[•\-\*–●○▪▫·\s\ufffd]+', '', line).strip()
+        lower_line = clean_line.lower().strip(' ,.-|:;')
 
-            # Check if line has tech in brackets or pipe: "ResumeMate | React, Python"
-            name = line
-            tech = ""
-            if "|" in line:
-                parts = line.split("|")
-                name = parts[0].strip()
-                tech = parts[1].strip()
-            elif "-" in line and len(line.split("-")[0].strip().split()) <= 4:
-                parts = line.split("-")
-                name = parts[0].strip()
-                tech = parts[1].strip()
+        # Check for section boundaries
+        if any(lower_line == h or lower_line.startswith(h + ' ') or lower_line.startswith(h + '/') for h in KNOWN_SECTION_HEADINGS):
+            if current_proj and current_proj['name']:
+                entries.append(current_proj)
+            current_proj = None
+            continue
+
+        if is_pure_tech_line(clean_line):
+            if current_proj:
+                current_proj['tech'] = (current_proj['tech'] + ', ' + clean_line).strip(' ,')
+            continue
+
+        # Check if line is a project title/header candidate
+        is_header = False
+        if not clean_line.startswith(('http://', 'https://', 'www.')) and not lower_line.startswith(('other projects', 'github:', 'demo:')):
+            if any(sep in clean_line for sep in [' – ', ' \ufffd ', ' - ', ' | ']):
+                first_part = re.split(r'\s+[-–|]\s+|\s+\ufffd\s+', clean_line)[0].strip()
+                words = first_part.split()
+                first_word = words[0].lower() if words else ''
+                if first_word not in PROJECT_ACTION_VERBS and len(first_part) >= 2 and len(words) <= 12:
+                    if not (clean_line.endswith('.') and len(clean_line.split()) > 15):
+                        is_header = True
+            elif not is_bullet and not clean_line.endswith('.') and clean_line[0].isupper() and len(clean_line.split()) <= 8:
+                first_word = clean_line.split()[0].lower()
+                if first_word not in PROJECT_ACTION_VERBS and clean_line.lower().strip(' ,.-|:;') not in STOP_PROJECT_WORDS:
+                    is_header = True
+
+        if is_header:
+            if current_proj and current_proj['name'] and (current_proj['bullets'] or current_proj['tech']):
+                entries.append(current_proj)
+            title_part, tech_part = split_title_and_tech(clean_line)
+            proj_name = title_part
+            for sep in [' – ', ' \ufffd ', ' - ', ' | ']:
+                if sep in title_part:
+                    proj_name = title_part.split(sep)[0].strip()
+                    break
+
+            # Strictly reject invalid or stop-word project titles
+            if proj_name.lower().strip(" ,.-|:;") in STOP_PROJECT_WORDS or len(proj_name.strip()) <= 2:
+                continue
 
             current_proj = {
-                "id": f"proj-{len(entries) + 1}",
-                "name": name,
-                "tech": tech,
-                "link": "",
-                "bullets": []
+                'id': f'proj-{len(entries) + 1}',
+                'name': proj_name,
+                'full_title': title_part,
+                'tech': tech_part,
+                'link': '',
+                'bullets': []
             }
-        elif current_proj:
-            # Check for URL
-            url_match = re.search(r'https?://[^\s]+', line)
-            if url_match:
-                current_proj["link"] = url_match.group(0)
-            
-            # Check for tech line
-            if line.lower().startswith(("technologies:", "tech stack:", "tech:", "built with:")):
-                tech_str = re.sub(r'^(?:technologies|tech stack|tech|built with):\s*', '', line, flags=re.IGNORECASE).strip()
-                current_proj["tech"] = tech_str
-            else:
-                cleaned = re.sub(r'^[•\-\*–\s]+', '', line).strip()
-                if cleaned:
-                    current_proj["bullets"].append(cleaned)
+            continue
 
-    if current_proj and (current_proj["name"] or current_proj["bullets"]):
+        # Bullet point or description
+        if current_proj:
+            if 'github' in lower_line or 'demo' in lower_line:
+                urls = re.findall(r'https?://[^\s]+', clean_line)
+                if urls:
+                    current_proj['link'] = urls[0]
+            if len(clean_line) > 10 and not clean_line.lower().startswith(('github', 'live demo')):
+                current_proj['bullets'].append(clean_line)
+
+    if current_proj and current_proj['name'] and (current_proj['bullets'] or current_proj['tech']):
         entries.append(current_proj)
 
     return entries
@@ -447,5 +636,14 @@ def parse_resume_content(raw_text: str, filename: str = "Uploaded_Resume.pdf") -
         "achievements": [],
         "tags": extracted_skills_list[:6]
     }
+
+    try:
+        from app.services.matcher_service import calculate_ats_metrics
+        ats = calculate_ats_metrics(parsed, raw_text, [])
+        parsed["atsScore"] = ats.score
+        parsed["atsBreakdown"] = ats.model_dump()
+    except Exception as e:
+        logger.warning(f"Could not compute ATS metrics during parse: {e}")
+        parsed["atsScore"] = 85
 
     return parsed

@@ -34,29 +34,23 @@ export const AppProvider = ({ children }) => {
     }
   });
 
-  // Uploaded resume file state
+  // Uploaded resume file state - strictly single use, defaults to null when not uploaded
   const [uploadedFile, setUploadedFile] = useState(() => {
     try {
       const saved = localStorage.getItem('resumemate_uploaded_file');
-      return saved ? JSON.parse(saved) : {
-        name: "Darshan_Sharma_Resume_2026.pdf",
-        size: "1.8 MB",
-        type: "application/pdf",
-        uploadedAt: "Just now",
-        status: "ready"
-      };
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
     }
   });
 
-  // Active analysis results
+  // Active analysis results - strictly tied to active resume session
   const [analysisResult, setAnalysisResult] = useState(() => {
     try {
       const saved = localStorage.getItem('resumemate_analysis');
-      return saved ? JSON.parse(saved) : initialAnalysisResult;
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      return initialAnalysisResult;
+      return null;
     }
   });
 
@@ -84,10 +78,20 @@ export const AppProvider = ({ children }) => {
   const [activeResume, setActiveResume] = useState(() => {
     try {
       const saved = localStorage.getItem('resumemate_active_builder_resume');
-      return saved ? JSON.parse(saved) : defaultResumeData;
-    } catch (e) {
-      return defaultResumeData;
-    }
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Clean out any corrupted single-word projects from previous parsing
+        if (parsed?.projects && Array.isArray(parsed.projects)) {
+          const stopWords = ["including", "to", "and", "or", "in", "with", "etc", "etc.", "also", "live", "browse", "vm", "vcloud", "azure", "fixed", "for", "by", "from", "on", "at", "as", "recent", "present"];
+          parsed.projects = parsed.projects.filter(p => {
+            const name = (p.name || "").trim().toLowerCase();
+            return !stopWords.includes(name) && name.length > 2 && (p.bullets?.length > 0 || p.tech?.trim() || name.split(/\s+/).length >= 2);
+          });
+        }
+        return parsed;
+      }
+    } catch (e) {}
+    return defaultResumeData;
   });
 
   // Upload loading and error states
@@ -150,13 +154,21 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('resumemate_uploaded_file', JSON.stringify(uploadedFile));
+      if (uploadedFile) {
+        localStorage.setItem('resumemate_uploaded_file', JSON.stringify(uploadedFile));
+      } else {
+        localStorage.removeItem('resumemate_uploaded_file');
+      }
     } catch (e) {}
   }, [uploadedFile]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('resumemate_analysis', JSON.stringify(analysisResult));
+      if (analysisResult) {
+        localStorage.setItem('resumemate_analysis', JSON.stringify(analysisResult));
+      } else {
+        localStorage.removeItem('resumemate_analysis');
+      }
     } catch (e) {}
   }, [analysisResult]);
 
@@ -241,22 +253,15 @@ export const AppProvider = ({ children }) => {
       const parsed = await api.parseJob({ url });
       if (parsed) {
         setCurrentJob(parsed);
-        showToast("Job requirements loaded successfully!");
+        showToast(`Job "${parsed.title}" extracted successfully!`, "success");
         return parsed;
       }
-    } catch (e) {}
-
-    // Fallback to sample job lookup
-    const match = sampleJobPostings.find(j => url.includes(j.company.toLowerCase()) || url.includes("react"));
-    const jobToLoad = match || {
-      ...sampleJobPostings[0],
-      url: url,
-      title: "Frontend Engineer",
-      company: "Extracted from URL"
-    };
-    setCurrentJob(jobToLoad);
-    showToast("Job requirements loaded successfully!");
-    return jobToLoad;
+      throw new Error("No job data returned from extraction.");
+    } catch (err) {
+      const errorMsg = err.message || "Failed to extract job details from URL.";
+      showToast(errorMsg, "error");
+      throw err;
+    }
   };
 
   const setJobText = async (text) => {
@@ -264,24 +269,24 @@ export const AppProvider = ({ children }) => {
       const parsed = await api.parseJob({ text });
       if (parsed) {
         setCurrentJob(parsed);
-        showToast("Custom Job Description saved!");
-        return;
+        showToast("Job description parsed successfully!", "success");
+        return parsed;
       }
-    } catch (e) {}
-
-    setCurrentJob((prev) => ({
-      ...prev,
-      description: text,
-      title: prev.title || "Custom Job Description",
-      requiredSkills: ["JavaScript", "React", "HTML", "CSS", "Git"],
-      preferredSkills: ["Node.js", "Docker", "AWS"]
-    }));
-    showToast("Custom Job Description saved!");
+      throw new Error("No structured job data returned.");
+    } catch (err) {
+      const errorMsg = err.message || "Failed to parse job description text.";
+      showToast(errorMsg, "error");
+      throw err;
+    }
   };
 
   const handleFileUpload = async (file) => {
     setUploadLoading(true);
     setUploadError(null);
+    setAnalysisResult(null);
+    try {
+      localStorage.removeItem('resumemate_analysis');
+    } catch (e) {}
 
     const initialFileData = {
       name: file.name,
@@ -297,7 +302,7 @@ export const AppProvider = ({ children }) => {
     try {
       const uploaded = await api.uploadResumeFile(file);
       if (uploaded) {
-        setUploadedFile({
+        const fileObj = {
           ...initialFileData,
           id: uploaded.id,
           status: uploaded.status || "ready",
@@ -305,27 +310,48 @@ export const AppProvider = ({ children }) => {
           extractedText: uploaded.extractedText,
           filePath: uploaded.filePath,
           pageCount: uploaded.pageCount || 1
-        });
+        };
+        setUploadedFile(fileObj);
 
         if (uploaded.parsedData) {
-          // Sync parsed data into active builder resume
-          setActiveResume((prev) => ({
-            ...prev,
-            ...uploaded.parsedData,
-            title: uploaded.parsedData.title || prev.title,
-            personalInfo: { ...prev.personalInfo, ...(uploaded.parsedData.personalInfo || {}) },
-            summary: uploaded.parsedData.summary || prev.summary,
-            skills: uploaded.parsedData.skills || prev.skills,
-            education: (uploaded.parsedData.education && uploaded.parsedData.education.length > 0)
-              ? uploaded.parsedData.education
-              : prev.education,
-            experience: (uploaded.parsedData.experience && uploaded.parsedData.experience.length > 0)
-              ? uploaded.parsedData.experience
-              : prev.experience,
-            projects: (uploaded.parsedData.projects && uploaded.parsedData.projects.length > 0)
-              ? uploaded.parsedData.projects
-              : prev.projects,
-          }));
+          const p = uploaded.parsedData;
+          // Build a completely fresh resume object strictly from this uploaded resume
+          // Never merge with previous candidate info (prev) to avoid data cross-contamination
+          const freshResume = {
+            id: `resume-${Date.now()}`,
+            title: p.title || `${p.personalInfo?.fullName || "Candidate"}'s Resume`,
+            template: "modern",
+            updatedAt: "Just now",
+            atsScore: p.atsScore || 85,
+            personalInfo: {
+              fullName: p.personalInfo?.fullName || "Candidate",
+              headline: p.personalInfo?.headline || p.title || "Software Engineer",
+              email: p.personalInfo?.email || "",
+              phone: p.personalInfo?.phone || "",
+              location: p.personalInfo?.location || "India",
+              linkedin: p.personalInfo?.linkedin || "",
+              github: p.personalInfo?.github || "",
+              portfolio: p.personalInfo?.portfolio || ""
+            },
+            summary: p.summary || "",
+            skills: p.skills || { languages: [], frameworks: [], tools: [], concepts: [] },
+            education: Array.isArray(p.education) ? p.education : [],
+            experience: Array.isArray(p.experience) ? p.experience : [],
+            projects: (Array.isArray(p.projects) ? p.projects : []).filter(proj => {
+              const name = (proj.name || "").trim().toLowerCase();
+              const stopWords = ["including", "to", "and", "or", "in", "with", "etc", "etc.", "also", "live", "browse", "vm", "vcloud", "azure", "fixed", "for", "by", "from", "on", "at", "as", "recent", "present"];
+              return !stopWords.includes(name) && name.length > 2 && (proj.bullets?.length > 0 || proj.tech?.trim() || name.split(/\s+/).length >= 2);
+            }),
+            certifications: Array.isArray(p.certifications) ? p.certifications : [],
+            achievements: Array.isArray(p.achievements) ? p.achievements : [],
+            extracted_skills: p.extracted_skills || [],
+            atsBreakdown: p.atsBreakdown || null
+          };
+
+          setActiveResume(freshResume);
+          try {
+            localStorage.setItem('resumemate_active_builder_resume', JSON.stringify(freshResume));
+          } catch (e) {}
         }
 
         const skillCount = uploaded.parsedData?.extracted_skills?.length || 0;
@@ -344,20 +370,36 @@ export const AppProvider = ({ children }) => {
   const removeFile = () => {
     setUploadedFile(null);
     setUploadError(null);
-    showToast("Resume file removed", "info");
+    setAnalysisResult(null);
+    setActiveResume(defaultResumeData);
+
+    try {
+      localStorage.removeItem('resumemate_uploaded_file');
+      localStorage.removeItem('resumemate_active_builder_resume');
+      localStorage.removeItem('resumemate_analysis');
+    } catch (e) {}
+
+    showToast("Resume removed. All candidate session data cleared.", "info");
   };
 
   const triggerAnalysis = async () => {
     let result = null;
     try {
+      const reqSkills = currentJob?.requiredSkills || (currentJob?.required_skills?.map(s => typeof s === 'object' ? s.name : s)) || [];
+      const prefSkills = currentJob?.preferredSkills || (currentJob?.preferred_skills?.map(s => typeof s === 'object' ? s.name : s)) || [];
+
       // Call live FastAPI matching engine
       result = await api.analyze({
         uploadedFileId: uploadedFile?.id,
         resumeData: activeResume,
+        resumeText: uploadedFile?.extractedText,
         jobId: currentJob?.id,
         jobTitle: currentJob?.title,
         company: currentJob?.company,
-        jobText: currentJob?.description
+        jobText: currentJob?.raw_extracted_text || currentJob?.description,
+        jobData: currentJob,
+        requiredSkills: reqSkills,
+        preferredSkills: prefSkills
       });
     } catch (e) {
       console.warn("Using offline analysis:", e.message);
@@ -380,23 +422,26 @@ export const AppProvider = ({ children }) => {
       };
       setHistory((prev) => [newRecord, ...prev]);
       showToast(`Analysis complete! Match score: ${result.matchScore}%`);
+      return result;
     } else {
       // Local fallback
+      const fallbackScore = analysisResult?.matchScore ?? 0;
       const newRecord = {
         id: `hist-${Date.now()}`,
-        jobTitle: currentJob.title || "Frontend Developer",
-        company: currentJob.company || "Apex Cloud Technologies",
-        matchScore: 82,
-        atsScore: 86,
+        jobTitle: currentJob?.title || "Target Position",
+        company: currentJob?.company || "Target Company",
+        matchScore: fallbackScore,
+        atsScore: 70,
         date: "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         dateFormatted: "Today",
-        status: "Strong Match",
-        missingCount: 3,
-        matchedCount: 5,
-        skills: ["JavaScript", "React", "HTML", "CSS", "Git"]
+        status: fallbackScore >= 70 ? "Good Match" : "Evaluation Complete",
+        missingCount: 0,
+        matchedCount: 0,
+        skills: []
       };
       setHistory((prev) => [newRecord, ...prev]);
-      showToast("Analysis complete! Match score: 82%");
+      showToast(`Analysis complete! Match score: ${fallbackScore}%`);
+      return null;
     }
   };
 

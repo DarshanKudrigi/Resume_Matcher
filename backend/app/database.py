@@ -26,7 +26,7 @@ async def setup_database():
     # Try PostgreSQL first
     try:
         logger.info(f"Attempting connection to PostgreSQL: {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}...")
-        test_engine = create_async_engine(postgres_url, echo=False, pool_pre_ping=True)
+        test_engine = create_async_engine(postgres_url, echo=False, pool_pre_ping=True, connect_args={"timeout": 2.0})
         async with test_engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         

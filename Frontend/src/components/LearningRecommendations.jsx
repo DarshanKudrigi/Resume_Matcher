@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { BookOpen, Clock, Award, X, CheckCircle2, ChevronRight } from 'lucide-react';
+import { BookOpen, Clock, Award, X, CheckCircle2, ChevronRight, ExternalLink } from 'lucide-react';
 
 export default function LearningRecommendations({ recommendations = [], className = "" }) {
   const [selectedSkillModal, setSelectedSkillModal] = useState(null);
+
+  if (!recommendations || recommendations.length === 0) {
+    return null;
+  }
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -11,10 +15,10 @@ export default function LearningRecommendations({ recommendations = [], classNam
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base sm:text-lg font-bold text-[#2F2A26] dark:text-[#F4EFE8]">
-            Recommended Learning
+            Recommended Official Documentation
           </h3>
           <p className="text-xs sm:text-sm text-[#77716B] dark:text-[#B9B0A5]">
-            Targeted study tracks to close identified skill gaps and boost match rate
+            Targeted official documentation and developer guides to close missing skill gaps
           </p>
         </div>
       </div>
@@ -66,7 +70,7 @@ export default function LearningRecommendations({ recommendations = [], classNam
                 onClick={() => setSelectedSkillModal(rec)}
                 className="w-full py-2 px-3 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0] dark:bg-[#1F1D1A] text-[#2F2A26] dark:text-[#F4EFE8] hover:bg-[#7C5C3B] hover:text-[#F7F5F0] dark:hover:bg-[#C49A6C] dark:hover:text-[#1F1D1A] text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
               >
-                <span>View Resources</span>
+                <span>Read Official Docs</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -88,7 +92,7 @@ export default function LearningRecommendations({ recommendations = [], classNam
                 </div>
                 <div>
                   <h4 className="text-base font-bold text-[#2F2A26] dark:text-[#F4EFE8]">
-                    {selectedSkillModal.skill} Study Guide
+                    {selectedSkillModal.skill} Official Documentation
                   </h4>
                   <p className="text-xs text-[#77716B] dark:text-[#B9B0A5]">
                     Est. Time: {selectedSkillModal.estimatedTime} • {selectedSkillModal.difficulty}
@@ -108,7 +112,7 @@ export default function LearningRecommendations({ recommendations = [], classNam
             {/* Topics Covered */}
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#77716B] dark:text-[#B9B0A5] block mb-2">
-                Key Topics to Master:
+                Official Concepts & Topics to Master:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {selectedSkillModal.keyTopics?.map((topic, i) => (
@@ -120,29 +124,34 @@ export default function LearningRecommendations({ recommendations = [], classNam
               </div>
             </div>
 
-            {/* Curated Resources List */}
+            {/* Curated Official Resources List */}
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#77716B] dark:text-[#B9B0A5] block mb-2">
-                Curated Learning Resources (Mock):
+                Recommended Official Documentation:
               </span>
               <div className="space-y-2.5">
                 {selectedSkillModal.resources?.map((res, i) => (
-                  <div
+                  <a
                     key={i}
-                    className="p-3 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/60 dark:bg-[#1F1D1A]/60 flex items-center justify-between gap-3 text-xs"
+                    href={res.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#F7F5F0]/60 dark:bg-[#1F1D1A]/60 hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A] hover:border-[#7C5C3B] dark:hover:border-[#C49A6C] transition-all flex items-center justify-between gap-3 text-xs group cursor-pointer"
+                    title={`Open official documentation in new tab: ${res.link}`}
                   >
                     <div>
-                      <p className="font-semibold text-[#2F2A26] dark:text-[#F4EFE8]">
-                        {res.title}
+                      <p className="font-semibold text-[#2F2A26] dark:text-[#F4EFE8] group-hover:text-[#7C5C3B] dark:group-hover:text-[#C49A6C] transition-colors flex items-center gap-1.5">
+                        <span>{res.title}</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
                       </p>
                       <p className="text-[11px] text-[#77716B] dark:text-[#B9B0A5] mt-0.5">
-                        {res.provider} • {res.type} ({res.duration})
+                        {res.provider} • {res.type} {res.duration ? `(${res.duration})` : ''}
                       </p>
                     </div>
-                    <span className="px-2 py-1 rounded bg-[#FFFFFF] dark:bg-[#292622] border border-[#E7E0D8] dark:border-[#413B34] text-[10px] font-semibold text-[#7C5C3B] dark:text-[#C49A6C] shrink-0">
-                      Open
+                    <span className="px-2.5 py-1 rounded bg-[#FFFFFF] dark:bg-[#292622] border border-[#E7E0D8] dark:border-[#413B34] group-hover:bg-[#7C5C3B] group-hover:text-white dark:group-hover:bg-[#C49A6C] dark:group-hover:text-[#1F1D1A] text-[10px] font-semibold text-[#7C5C3B] dark:text-[#C49A6C] transition-colors shrink-0 flex items-center gap-1">
+                      Read Docs <ExternalLink className="w-2.5 h-2.5" />
                     </span>
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>

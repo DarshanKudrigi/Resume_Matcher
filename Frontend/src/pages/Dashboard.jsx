@@ -13,6 +13,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import JobDescriptionCard from '../components/JobDescriptionCard';
 import ResumeUpload from '../components/ResumeUpload';
+import JobRecommendations from '../components/JobRecommendations';
 import { useApp } from '../context/AppContext';
 
 export default function Dashboard() {
@@ -57,6 +58,9 @@ export default function Dashboard() {
           <JobDescriptionCard />
           <ResumeUpload />
         </div>
+
+        {/* AI-Powered Job Recommendations: LinkedIn & Naukri Scraper */}
+        <JobRecommendations />
 
         {/* Primary Action: ANALYZE RESUME BUTTON */}
         <div className="rounded-2xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] p-6 sm:p-8 shadow-warm-sm text-center space-y-4">

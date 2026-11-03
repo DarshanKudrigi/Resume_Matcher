@@ -29,6 +29,17 @@ export default function ResumePreview({
     achievements = []
   } = resumeData || {};
 
+  // Clean out any stopword fragments or single-word broken projects
+  const stopWords = ["including", "to", "and", "or", "in", "with", "etc", "etc.", "also", "live", "browse", "vm", "vcloud", "azure", "fixed", "for", "by", "from", "on", "at", "as", "recent", "present"];
+  const validProjects = (projects || []).filter(p => {
+    const name = (p.name || "").trim();
+    const lower = name.toLowerCase();
+    if (!name || name.length <= 2 || stopWords.includes(lower)) return false;
+    const wordCount = name.split(/\s+/).length;
+    const hasDetails = (p.bullets && p.bullets.length > 0) || (p.tech && p.tech.trim().length > 0) || (p.link && p.link.trim().length > 0);
+    return hasDetails || wordCount >= 2;
+  });
+
   const handlePrint = () => {
     window.print();
   };
@@ -126,13 +137,13 @@ export default function ResumePreview({
               )}
 
               {/* Projects */}
-              {projects?.length > 0 && (
+              {validProjects?.length > 0 && (
                 <div>
                   <h2 className="text-xs font-bold uppercase tracking-wider border-b border-[#2F2A26]/20 pb-0.5 mb-2 font-sans">
                     Key Projects
                   </h2>
                   <div className="space-y-2.5 font-sans">
-                    {projects.map((proj, i) => (
+                    {validProjects.map((proj, i) => (
                       <div key={proj.id || i}>
                         <div className="flex items-center justify-between font-semibold text-xs">
                           <span>{proj.name}</span>
@@ -275,14 +286,14 @@ export default function ResumePreview({
               )}
 
               {/* Projects */}
-              {projects?.length > 0 && (
+              {validProjects?.length > 0 && (
                 <div>
                   <h2 className="text-xs font-bold uppercase tracking-wider text-[#7C5C3B] mb-2 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#7C5C3B]" />
                     Featured Projects
                   </h2>
                   <div className="space-y-2.5">
-                    {projects.map((proj, i) => (
+                    {validProjects.map((proj, i) => (
                       <div key={proj.id || i} className="bg-[#F7F5F0]/40 p-2.5 rounded-lg border border-[#E7E0D8]/50">
                         <div className="flex items-center justify-between text-xs font-bold text-[#2F2A26]">
                           <span>{proj.name}</span>
@@ -431,13 +442,13 @@ export default function ResumePreview({
               )}
 
               {/* Projects */}
-              {projects?.length > 0 && (
+              {validProjects?.length > 0 && (
                 <div>
                   <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#77716B] mb-2">
                     Projects
                   </h2>
                   <div className="space-y-2">
-                    {projects.map((proj, i) => (
+                    {validProjects.map((proj, i) => (
                       <div key={proj.id || i}>
                         <div className="flex justify-between items-baseline text-xs">
                           <span className="font-medium">{proj.name}</span>

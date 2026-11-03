@@ -149,7 +149,7 @@ export default function ResumeBuilder() {
             />
 
             {/* ATS Section directly visible in editor column */}
-            <ATSChecker score={86} />
+            <ATSChecker atsBreakdown={activeResume?.atsBreakdown} resumeData={activeResume} score={activeResume?.atsScore} />
           </div>
 
           {/* Right Side: Live Resume Preview (6 cols on lg) */}

@@ -1,9 +1,10 @@
 from tracker.models import Job
 
 class BaseScraper:
-    def __init__(self, keywords: list[str], location: str):
+    def __init__(self, keywords: list[str], location: str, headless: bool = True):
         self.keywords = keywords
         self.location = location
+        self.headless = headless
 
     def scrape(self) -> list[Job]:
         raise NotImplementedError("Subclasses must implement scrape()")

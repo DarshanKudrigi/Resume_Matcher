@@ -5,6 +5,7 @@ import { AppProvider } from './context/AppContext';
 
 // Pages
 import Dashboard from './pages/Dashboard';
+import FindJobs from './pages/FindJobs';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Analyzer from './pages/Analyzer';
@@ -22,6 +23,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/jobs" element={<FindJobs />} />
+            <Route path="/find-jobs" element={<FindJobs />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/analyzer" element={<Analyzer />} />

@@ -16,7 +16,7 @@ export const initialUser = {
   degree: "B.Tech in Computer Science and Engineering",
   graduationYear: "2026",
   notifications: [
-    { id: 1, title: "Analysis Complete", message: "Your resume match score for Apex Cloud is 82%.", time: "10m ago", unread: true },
+    { id: 1, title: "Analysis Complete", message: "Your resume analysis has been updated.", time: "10m ago", unread: true },
     { id: 2, title: "ATS Tip", message: "Adding 'Docker' can increase your score by up to 8%.", time: "2h ago", unread: true },
     { id: 3, title: "Resume Saved", message: "Frontend Developer Resume was updated.", time: "1d ago", unread: false },
   ]
@@ -337,9 +337,9 @@ export const initialHistory = [
 
 export const chatResponses = [
   {
-    triggers: ["why is my match score 82%", "82%", "match score", "why 82"],
-    question: "Why is my match score 82%?",
-    response: "Your 82% match score is calculated because you satisfy 100% of the core required skills (JavaScript, React, HTML, CSS, and Git) and partially cover Node.js. However, the job description also prefers Docker, AWS, and System Design, which are currently not detected in your resume."
+    triggers: ["how is my match score calculated", "match score", "how match score", "score"],
+    question: "How is my match score calculated?",
+    response: "Your match score is calculated by evaluating your extracted skills against the target role's mandatory required qualifications (weighted at 60%), preferred qualifications (weighted at 25%), and relevant industry keyword density."
   },
   {
     triggers: ["what skills am i missing", "missing skills", "skills missing", "what am i missing"],

@@ -8,12 +8,15 @@ class AnalysisRequest(BaseModel):
     resumeData: Optional[Dict[str, Any]] = None
     resumeText: Optional[str] = None
 
-    # Job can be provided by ID or raw text or URL
+    # Job can be provided by ID, raw text, URL, or structured data
     jobId: Optional[str] = None
     jobTitle: Optional[str] = None
     company: Optional[str] = None
     jobText: Optional[str] = None
     jobUrl: Optional[str] = None
+    jobData: Optional[Dict[str, Any]] = None
+    requiredSkills: Optional[List[str]] = None
+    preferredSkills: Optional[List[str]] = None
 
 class SkillGapItem(BaseModel):
     skill: str
@@ -57,11 +60,13 @@ class AnalysisResponse(BaseModel):
     atsScore: int
     status: str
     summary: str
-    matchedSkills: List[str]
-    missingSkills: List[str]
-    partialSkills: List[str]
-    skillGaps: List[SkillGapItem]
-    learningRecommendations: List[LearningRecommendation]
+    matchedSkills: List[str] = []
+    missingSkills: List[str] = []
+    partialSkills: List[str] = []
+    matchedPreferredSkills: List[str] = []
+    missingPreferredSkills: List[str] = []
+    skillGaps: List[SkillGapItem] = []
+    learningRecommendations: List[LearningRecommendation] = []
     atsBreakdown: ATSBreakdown
 
 class DashboardStatsResponse(BaseModel):

@@ -3,6 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { 
   FileCheck, 
   LayoutDashboard, 
+  Search,
   Sparkles, 
   FileText, 
   FolderKanban, 
@@ -10,7 +11,7 @@ import {
   Settings, 
   LogOut, 
   Menu, 
-  X
+  X 
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useApp } from '../context/AppContext';
@@ -36,6 +37,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Find Jobs for Me', path: '/jobs', icon: Search },
     { name: 'Analyzer', path: '/analyzer', icon: Sparkles },
     { name: 'Resume Builder', path: '/builder', icon: FileText },
     { name: 'My Resumes', path: '/my-resumes', icon: FolderKanban },
@@ -47,7 +49,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           
           {/* Left: Brand Logo */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6 lg:gap-8">
             <Link to="/dashboard" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 rounded-lg bg-[#7C5C3B] dark:bg-[#C49A6C] text-[#F7F5F0] dark:text-[#1F1D1A] flex items-center justify-center shadow-warm-sm group-hover:opacity-95 transition-opacity">
                 <FileCheck className="w-5 h-5 stroke-[2.2]" />
@@ -71,15 +73,15 @@ export default function Navbar() {
                     key={link.path}
                     to={link.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                      `flex items-center gap-2 px-3 py-1.5 lg:px-3.5 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-150 ${
                         isActive
                           ? 'bg-[#F7F5F0] dark:bg-[#1F1D1A] text-[#7C5C3B] dark:text-[#C49A6C] font-semibold border border-[#E7E0D8]/60 dark:border-[#413B34]'
                           : 'text-[#77716B] dark:text-[#B9B0A5] hover:text-[#2F2A26] dark:hover:text-[#F4EFE8] hover:bg-[#F7F5F0]/60 dark:hover:bg-[#1F1D1A]/50'
                       }`
                     }
                   >
-                    <Icon className="w-4 h-4 opacity-80" />
-                    <span>{link.name}</span>
+                    <Icon className="w-4 h-4 opacity-80 shrink-0" />
+                    <span className="whitespace-nowrap">{link.name}</span>
                   </NavLink>
                 );
               })}
@@ -98,11 +100,12 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                 className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] hover:border-[#A67C52] dark:hover:border-[#C49A6C] transition-colors text-left"
+                aria-expanded={profileMenuOpen}
               >
-                <div className="w-7 h-7 rounded-full bg-[#D8A48F]/40 dark:bg-[#C49A6C]/30 text-[#7C5C3B] dark:text-[#D8B08A] font-bold text-xs flex items-center justify-center border border-[#7C5C3B]/20 dark:border-[#C49A6C]/30">
-                  DS
+                <div className="w-7 h-7 rounded-md bg-[#7C5C3B]/10 dark:bg-[#C49A6C]/20 text-[#7C5C3B] dark:text-[#C49A6C] text-xs font-bold flex items-center justify-center">
+                  {user.avatar || 'DS'}
                 </div>
-                <div className="hidden sm:flex flex-col text-left leading-tight">
+                <div className="hidden sm:flex flex-col text-left -space-y-0.5">
                   <span className="text-xs font-semibold text-[#2F2A26] dark:text-[#F4EFE8]">
                     {user.name.split(' ')[0]}
                   </span>
@@ -112,40 +115,51 @@ export default function Navbar() {
                 </div>
               </button>
 
+              {/* Profile Dropdown */}
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] shadow-warm-lg py-1.5 z-50">
-                  <div className="px-3.5 py-2 border-b border-[#E7E0D8] dark:border-[#413B34]">
-                    <p className="text-xs font-semibold text-[#2F2A26] dark:text-[#F4EFE8] truncate">{user.name}</p>
-                    <p className="text-[11px] text-[#77716B] dark:text-[#B9B0A5] truncate">{user.email}</p>
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] shadow-warm-lg py-1.5 z-50 animate-fadeIn">
+                  <div className="px-3.5 py-2.5 border-b border-[#E7E0D8] dark:border-[#413B34]">
+                    <p className="text-xs font-bold text-[#2F2A26] dark:text-[#F4EFE8] truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-[11px] text-[#77716B] dark:text-[#B9B0A5] truncate">
+                      {user.email}
+                    </p>
                   </div>
-                  <Link
-                    to="/settings"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2 px-3.5 py-2 text-xs text-[#2F2A26] dark:text-[#F4EFE8] hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A]"
-                  >
-                    <User className="w-3.5 h-3.5 text-[#7C5C3B] dark:text-[#C49A6C]" />
-                    Profile & Settings
-                  </Link>
-                  <Link
-                    to="/my-resumes"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2 px-3.5 py-2 text-xs text-[#2F2A26] dark:text-[#F4EFE8] hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A]"
-                  >
-                    <FolderKanban className="w-3.5 h-3.5 text-[#7C5C3B] dark:text-[#C49A6C]" />
-                    My Saved Resumes
-                  </Link>
-                  <div className="border-t border-[#E7E0D8] dark:border-[#413B34] my-1" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      navigate('/login');
-                    }}
-                    className="w-full flex items-center gap-2 px-3.5 py-2 text-xs text-[#B96A63] hover:bg-[#B96A63]/10"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    Sign Out (Mock)
-                  </button>
+
+                  <div className="py-1">
+                    <Link
+                      to="/settings"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#77716B] dark:text-[#B9B0A5] hover:text-[#2F2A26] dark:hover:text-[#F4EFE8] hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A] transition-colors"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>Account Profile</span>
+                    </Link>
+
+                    <Link
+                      to="/settings"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#77716B] dark:text-[#B9B0A5] hover:text-[#2F2A26] dark:hover:text-[#F4EFE8] hover:bg-[#F7F5F0] dark:hover:bg-[#1F1D1A] transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Preferences & Theme</span>
+                    </Link>
+                  </div>
+
+                  <div className="pt-1 border-t border-[#E7E0D8] dark:border-[#413B34]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        navigate('/login');
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#B96A63] hover:bg-[#B96A63]/10 transition-colors text-left"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -190,7 +204,7 @@ export default function Navbar() {
             <Link
               to="/settings"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm text-[#77716B] dark:text-[#B9B0A5]"
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-[#77716B] dark:text-[#B9B0A5]"
             >
               <Settings className="w-4 h-4" />
               <span>Settings</span>

@@ -1,0 +1,264 @@
+{
+  "191aff96d2:9d2ac5016044504c": {
+    "score": 0.85,
+    "matched_skills": [
+      "Python",
+      "FastAPI"
+    ],
+    "missing_skills": [],
+    "recommendation": "apply",
+    "reason": "Great fit.",
+    "experience_required": 1,
+    "experience_match": true
+  },
+  "3d84a95da2:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [],
+    "missing_skills": [
+      "Java",
+      "Golang",
+      "React",
+      "6+ years full stack experience",
+      "Technical leadership",
+      "Performance optimization",
+      "Testing"
+    ],
+    "recommendation": "skip",
+    "reason": "Low skill and experience match, only ~4 years experience and missing core tech stack",
+    "experience_required": 6,
+    "experience_match": false
+  },
+  "616fecddc1:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "software development",
+      "cloud"
+    ],
+    "missing_skills": [
+      "Active Directory",
+      "DirSync",
+      "USN cookies",
+      "change tracking",
+      "backup",
+      "system programming"
+    ],
+    "recommendation": "skip",
+    "reason": "Resume lacks AD and deep systems experience, resulting in low match",
+    "experience_required": 0,
+    "experience_match": true
+  },
+  "6de9600c06:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "Google Cloud"
+    ],
+    "missing_skills": [
+      "ML",
+      "LLM",
+      "RAG",
+      "GPU infrastructure",
+      "distributed systems",
+      "model serving",
+      "prompt engineering"
+    ],
+    "recommendation": "skip",
+    "reason": "Low technical and skill match for the ML/LLM focused role",
+    "experience_required": 0,
+    "experience_match": true
+  },
+  "d63ac414b0:c311487fc263b5c4": {
+    "score": 0.1,
+    "matched_skills": [],
+    "missing_skills": [
+      "Murex",
+      "capital markets",
+      "Python"
+    ],
+    "recommendation": "skip",
+    "reason": "Low match; candidate lacks Python, Murex and capital markets experience.",
+    "experience_required": 5,
+    "experience_match": false
+  },
+  "2ada369d72:c311487fc263b5c4": {
+    "score": 0.55,
+    "matched_skills": [
+      "Google Cloud",
+      "Node.js",
+      "software development",
+      "scalability"
+    ],
+    "missing_skills": [
+      "Kubernetes",
+      "Infrastructure as Code (IaC)",
+      "CI/CD (Jenkins, SonarQube, Artifactory)",
+      "GCP-specific services",
+      "Automation scripting"
+    ],
+    "recommendation": "maybe",
+    "reason": "Score reflects moderate alignment with cloud and development experience but lacks key GCP, IaC, and Kubernetes skills.",
+    "experience_required": 4,
+    "experience_match": false
+  },
+  "889425295d:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [],
+    "missing_skills": [
+      "Zoho Recruit",
+      "Zoho CRM",
+      "Zoho Projects",
+      "Zoho People",
+      "Zoho Timesheet",
+      "Zoho Books",
+      "Zoho Mail",
+      "Zoho One integration"
+    ],
+    "recommendation": "skip",
+    "reason": "Low match due to lack of Zoho experience despite sufficient overall experience",
+    "experience_required": 4,
+    "experience_match": false
+  },
+  "d6fe9b3d52:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "software development",
+      "cloud computing",
+      "full stack development"
+    ],
+    "missing_skills": [
+      "consulting",
+      "finance",
+      "business strategy",
+      "management",
+      "TMT industry knowledge"
+    ],
+    "recommendation": "skip",
+    "reason": "Low alignment with consulting and finance requirements, resulting in a score of 0.2.",
+    "experience_required": 5,
+    "experience_match": false
+  },
+  "9a76b7e2ef:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "Node.js"
+    ],
+    "missing_skills": [
+      "React",
+      "Python",
+      "HTML",
+      "CSS",
+      "Databases"
+    ],
+    "recommendation": "skip",
+    "reason": "Low skill overlap and insufficient experience for a senior architect role",
+    "experience_required": 7,
+    "experience_match": false
+  },
+  "c75f2c5bce:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [
+      "Google Cloud",
+      "software development"
+    ],
+    "missing_skills": [
+      "distributed storage",
+      "filesystem architecture",
+      "performance engineering",
+      "data services",
+      "cloud-scale storage",
+      "AI-enabled data management",
+      "technical leadership"
+    ],
+    "recommendation": "skip",
+    "reason": "low technical and skill match for senior storage architecture role",
+    "experience_required": 0,
+    "experience_match": true
+  },
+  "99a2a4fb06:c311487fc263b5c4": {
+    "score": 0.3,
+    "matched_skills": [
+      "Google Cloud",
+      "NodeJs",
+      "software development"
+    ],
+    "missing_skills": [
+      "distributed systems",
+      "large-scale architecture",
+      "data security",
+      "team leadership",
+      "management"
+    ],
+    "recommendation": "skip",
+    "reason": "Low technical and leadership match with score 0.3",
+    "experience_required": 5,
+    "experience_match": false
+  },
+  "8b562aa084:c311487fc263b5c4": {
+    "score": 0.78,
+    "matched_skills": [
+      "programming",
+      "software design",
+      "software development",
+      "cloud computing",
+      "team collaboration",
+      "leadership"
+    ],
+    "missing_skills": [
+      "scientific research methods",
+      "formal software engineering processes"
+    ],
+    "recommendation": "apply",
+    "reason": "Strong programming and development experience with good teamwork and leadership aligns well with the role, though formal research methods are less evident.",
+    "experience_required": 1,
+    "experience_match": true
+  },
+  "590fff834b:c311487fc263b5c4": {
+    "score": 0.15,
+    "matched_skills": [],
+    "missing_skills": [
+      "ServiceNow"
+    ],
+    "recommendation": "skip",
+    "reason": "Candidate lacks ServiceNow expertise and only marginally meets the 3\u2011year experience requirement, resulting in a low overall match.",
+    "experience_required": 3,
+    "experience_match": false
+  },
+  "358df9743e:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [],
+    "missing_skills": [
+      "Microsoft Robotic Process Automation",
+      "UiPath"
+    ],
+    "recommendation": "skip",
+    "reason": "Lacks required RPA skills despite sufficient experience.",
+    "experience_required": 3,
+    "experience_match": false
+  },
+  "3a037e7d06:c311487fc263b5c4": {
+    "score": 0.15,
+    "matched_skills": [],
+    "missing_skills": [
+      "Automotive ECU Software",
+      "C/C++",
+      "Computer Vision"
+    ],
+    "recommendation": "skip",
+    "reason": "Low skill match and no relevant experience",
+    "experience_required": 3,
+    "experience_match": false
+  },
+  "7b8f5de94d:c311487fc263b5c4": {
+    "score": 0.2,
+    "matched_skills": [],
+    "missing_skills": [
+      "Playwright",
+      "Automated Testing",
+      "JavaScript",
+      "Selenium"
+    ],
+    "recommendation": "skip",
+    "reason": "Low skill match and insufficient experience.",
+    "experience_required": 5,
+    "experience_match": false
+  }
+}

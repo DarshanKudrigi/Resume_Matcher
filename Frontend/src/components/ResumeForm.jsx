@@ -101,6 +101,23 @@ export default function ResumeForm({
     onChange({ experience: (resumeData.experience || []).filter(e => e.id !== id) });
   };
 
+  const stopWords = ["including", "to", "and", "or", "in", "with", "etc", "etc.", "also", "for", "by", "on", "at", "as", "from", "live", "browse", "vm", "vcloud", "azure", "fixed", "present", "recent"];
+  const isInvalidProject = (p) => {
+    const name = (p.name || "").trim().toLowerCase();
+    return stopWords.includes(name) || name.length <= 2;
+  };
+
+  const cleanProjects = () => {
+    const filtered = (resumeData.projects || []).filter(p => !isInvalidProject(p));
+    onChange({ projects: filtered });
+    if (showToast) showToast("Removed fragmented project entries");
+  };
+
+  const clearAllProjects = () => {
+    onChange({ projects: [] });
+    if (showToast) showToast("Cleared all projects");
+  };
+
   // Add / Remove Project
   const addProject = () => {
     const newProj = {
@@ -467,6 +484,18 @@ export default function ResumeForm({
 
         {openSections.projects && (
           <div className="p-5 border-t border-[#E7E0D8] dark:border-[#413B34] space-y-4 bg-[#F7F5F0]/20 dark:bg-[#1F1D1A]/20">
+            {resumeData.projects?.some(isInvalidProject) && (
+              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 flex items-center justify-between gap-2 text-xs text-amber-800 dark:text-amber-200">
+                <span>Fragmented text lines detected in projects section.</span>
+                <button
+                  type="button"
+                  onClick={cleanProjects}
+                  className="px-2.5 py-1 rounded bg-[#7C5C3B] dark:bg-[#C49A6C] text-[#F7F5F0] dark:text-[#1F1D1A] font-semibold text-[11px] shrink-0"
+                >
+                  Remove Fragments
+                </button>
+              </div>
+            )}
             {resumeData.projects?.map((proj, pIdx) => (
               <div key={proj.id || pIdx} className="p-4 rounded-xl border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] space-y-3">
                 <div className="flex items-center justify-between">

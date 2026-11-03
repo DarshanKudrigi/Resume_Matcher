@@ -13,10 +13,11 @@ import ResumeUpload from '../components/ResumeUpload';
 import { useApp } from '../context/AppContext';
 
 export default function Analyzer() {
-  const { currentJob, uploadedFile, triggerAnalysis, showToast } = useApp();
+  const { currentJob, uploadedFile, analysisResult, triggerAnalysis, showToast } = useApp();
   const navigate = useNavigate();
   const [analyzingState, setAnalyzingState] = useState('idle'); // 'idle' | 'running' | 'completed'
   const [currentStep, setCurrentStep] = useState(0);
+  const [latestScore, setLatestScore] = useState(analysisResult?.matchScore ?? null);
 
   const steps = [
     { title: "Parsing Candidate Resume", desc: "Extracting skills, experience timelines, and metrics..." },
@@ -25,7 +26,7 @@ export default function Analyzer() {
     { title: "Generating Skill Gap Report", desc: "Compiling missing technologies and learning roadmaps..." }
   ];
 
-  const handleStartAnalysis = () => {
+  const handleStartAnalysis = async () => {
     if (!uploadedFile) {
       showToast("Please upload or keep a resume file active", "info");
       return;
@@ -34,21 +35,40 @@ export default function Analyzer() {
     setAnalyzingState('running');
     setCurrentStep(0);
 
+    let resScore = null;
+    const analyzePromise = triggerAnalysis().then((res) => {
+      if (res && res.matchScore !== undefined) {
+        resScore = res.matchScore;
+        setLatestScore(res.matchScore);
+      }
+      return res;
+    });
+
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev < steps.length - 1) {
           return prev + 1;
         } else {
-          clearInterval(stepInterval);
-          setAnalyzingState('completed');
-          triggerAnalysis();
-          setTimeout(() => {
-            navigate('/results');
-          }, 900);
           return prev;
         }
       });
-    }, 600);
+    }, 550);
+
+    try {
+      const res = await analyzePromise;
+      clearInterval(stepInterval);
+      setCurrentStep(steps.length - 1);
+      const score = res?.matchScore ?? resScore ?? 0;
+      setLatestScore(score);
+      setAnalyzingState('completed');
+      setTimeout(() => {
+        navigate('/results');
+      }, 1000);
+    } catch (err) {
+      clearInterval(stepInterval);
+      setAnalyzingState('idle');
+      showToast("Analysis encountered an error", "error");
+    }
   };
 
   return (
@@ -76,7 +96,7 @@ export default function Analyzer() {
             onClick={() => navigate('/results')}
             className="px-4 py-2 rounded-lg border border-[#E7E0D8] dark:border-[#413B34] bg-[#FFFFFF] dark:bg-[#292622] hover:border-[#7C5C3B] text-xs font-semibold text-[#2F2A26] dark:text-[#F4EFE8] transition-colors shadow-warm-sm self-start sm:self-auto"
           >
-            View Latest Results (82%)
+            View Latest Results {analysisResult ? `(${analysisResult.matchScore}%)` : ''}
           </button>
         </div>
 
@@ -170,7 +190,7 @@ export default function Analyzer() {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-[#2F2A26] dark:text-[#F4EFE8]">
-                Analysis Complete! Match Score: 82%
+                Analysis Complete! Match Score: {latestScore ?? (analysisResult?.matchScore ?? '')}%
               </h3>
               <p className="text-xs text-[#77716B] dark:text-[#B9B0A5]">
                 Redirecting to comprehensive results dashboard...

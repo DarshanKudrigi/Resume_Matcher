@@ -5,6 +5,7 @@ from app.routers.jobs import router as jobs_router
 from app.routers.analyze import router as analyze_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.chat import router as chat_router
+from app.routers.recommendations import router as recommendations_router
 
 __all__ = [
     "auth_router",
@@ -13,5 +14,6 @@ __all__ = [
     "jobs_router",
     "analyze_router",
     "dashboard_router",
-    "chat_router"
+    "chat_router",
+    "recommendations_router"
 ]

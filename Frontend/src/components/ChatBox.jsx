@@ -11,7 +11,7 @@ export default function ChatBox() {
     {
       id: 1,
       sender: 'assistant',
-      text: "Hello Darshan! I'm your ResumeMate assistant. Ask me anything about your 82% match score, missing skills, or how to tune your resume for Apex Cloud.",
+      text: "Hello Darshan! I'm your ResumeMate assistant. Ask me anything about your resume match score, missing skills, or how to tune your resume for target positions.",
       time: "Now"
     }
   ]);
@@ -20,7 +20,7 @@ export default function ChatBox() {
   const messagesEndRef = useRef(null);
 
   const suggestedQuestions = [
-    "Why is my match score 82%?",
+    "How was my match score calculated?",
     "What skills am I missing?",
     "How can I improve my resume?",
     "What should I learn first?"

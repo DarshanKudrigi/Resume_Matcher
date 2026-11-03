@@ -319,8 +319,10 @@ def extract_skills_from_text(text: str) -> List[str]:
     
     found_skills: Set[str] = set()
     lower_text = " " + text.lower() + " "
-    # Replace common punctuation with spaces for cleaner boundary matching
-    cleaned_text = re.sub(r'[,;()\[\]{}|/\\]', ' ', lower_text)
+    # Replace common punctuation with spaces for cleaner boundary matching while preserving tech like node.js, c++, c#
+    cleaned_text = re.sub(r'[,;()\[\]{}|/\\:!?"\']', ' ', lower_text)
+    # Replace periods that are sentence endings (followed by whitespace or end of string)
+    cleaned_text = re.sub(r'\.(?:\s|$)', ' ', cleaned_text)
 
     for canonical, info in SKILLS_TAXONOMY.items():
         aliases = info.get("aliases", [canonical.lower()])

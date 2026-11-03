@@ -77,31 +77,32 @@ async def analyze_resume(
         }
 
     # 2. Resolve Job Data
-    job_data = {}
-    if req.jobId:
-        res = await db.execute(select(JobPosting).where(JobPosting.id == req.jobId))
-        found_job = res.scalars().first()
-        if found_job:
-            job_data = {
-                "title": found_job.title,
-                "company": found_job.company,
-                "description": found_job.description,
-                "requiredSkills": found_job.required_skills,
-                "preferredSkills": found_job.preferred_skills
-            }
-        else:
-            # Check default sample jobs
-            matched_sample = next((j for j in DEFAULT_SAMPLE_JOBS if j["id"] == req.jobId), None)
-            if matched_sample:
-                job_data = matched_sample
+    job_data = req.jobData or {}
+    if not job_data:
+        if req.jobId:
+            res = await db.execute(select(JobPosting).where(JobPosting.id == req.jobId))
+            found_job = res.scalars().first()
+            if found_job:
+                job_data = {
+                    "title": found_job.title,
+                    "company": found_job.company,
+                    "description": found_job.description,
+                    "requiredSkills": found_job.required_skills,
+                    "preferredSkills": found_job.preferred_skills
+                }
+            else:
+                # Check default sample jobs
+                matched_sample = next((j for j in DEFAULT_SAMPLE_JOBS if j["id"] == req.jobId), None)
+                if matched_sample:
+                    job_data = matched_sample
 
     if not job_data:
         job_data = {
-            "title": req.jobTitle or "Frontend Software Engineer (React)",
-            "company": req.company or "Apex Cloud Technologies",
-            "description": req.jobText or DEFAULT_SAMPLE_JOBS[0]["description"],
-            "requiredSkills": ["JavaScript", "React", "HTML", "CSS", "Git"],
-            "preferredSkills": ["Node.js", "Docker", "AWS"]
+            "title": req.jobTitle or "Target Position",
+            "company": req.company or "Target Company",
+            "description": req.jobText or (DEFAULT_SAMPLE_JOBS[0]["description"] if not req.jobText else ""),
+            "requiredSkills": req.requiredSkills or [],
+            "preferredSkills": req.preferredSkills or []
         }
 
     # 3. Perform analysis
